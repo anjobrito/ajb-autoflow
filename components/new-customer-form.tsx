@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { saveCustomer } from "@/lib/browser-store";
+import { brazilianStates, commonCities } from "@/lib/select-options";
 
 export function NewCustomerForm() {
   const router = useRouter();
@@ -10,7 +11,6 @@ export function NewCustomerForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const formData = new FormData(event.currentTarget);
 
     saveCustomer({
@@ -34,12 +34,12 @@ export function NewCustomerForm() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Nome completo<input required name="name" placeholder="Ex: João Pereira" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">CPF/CNPJ<input name="document" placeholder="Ex: 123.456.789-00" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Telefone / WhatsApp<input required name="phone" placeholder="Ex: (19) 98888-1100" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">E-mail<input name="email" type="email" placeholder="Ex: cliente@email.com" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Cidade<input name="city" placeholder="Ex: Araras" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Estado<input name="state" placeholder="Ex: SP" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Nome completo<input required name="name" placeholder="Ex: João Pereira" autoComplete="name" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">CPF/CNPJ<input name="document" inputMode="numeric" placeholder="Ex: 123.456.789-00" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Telefone / WhatsApp<input required name="phone" inputMode="tel" autoComplete="tel" placeholder="Ex: (19) 98888-1100" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">E-mail<input name="email" type="email" autoComplete="email" placeholder="Ex: cliente@email.com" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Cidade<select name="city" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{commonCities.map((city) => <option key={city}>{city}</option>)}</select></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">UF<select name="state" defaultValue="SP" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{brazilianStates.map((state) => <option key={state}>{state}</option>)}</select></label>
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-3">
