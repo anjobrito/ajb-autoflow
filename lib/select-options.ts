@@ -138,3 +138,22 @@ export const workOrderStatuses = [
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
+
+export const financialEntryTypes = ["Pagar", "Receber"] as const;
+export const financialEntryCategories = [
+  "Peças e produtos",
+  "Serviços terceirizados",
+  "Aluguel",
+  "Salários",
+  "Comissões",
+  "Impostos e taxas",
+  "Energia elétrica",
+  "Água",
+  "Internet e telefone",
+  "Venda de serviço",
+  "Venda de peça/produto",
+  "Lavagem",
+  "Outro",
+] as const;
+export const financialEntryStatuses = ["Pendente", "Pago", "Recebido", "Vencido", "Cancelado"] as const;
+export const paymentMethods = ["Dinheiro", "Pix", "Cartão de débito", "Cartão de crédito", "Boleto", "Transferência", "Cheque", "Outro"] as const;
