@@ -1,9 +1,2 @@
-export const businessTypes = [
-  "Oficina mecânica",
-  "Lava-jato",
-  "Estética automotiva",
-  "Autopeças",
-  "Centro automotivo",
-] as const;
-
-export type BusinessType = (typeof businessTypes)[number];
+export { businessTypes } from "@/lib/select-options";
+export type BusinessType = (typeof import("@/lib/select-options").businessTypes)[number];
