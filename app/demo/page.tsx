@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, Car, ClipboardList, Gauge, Package, Users } from "lucide-react";
+import { ArrowRight, Bell, Car, ClipboardList, Gauge, Package, Users, type LucideIcon } from "lucide-react";
 
 const steps = [
   {
@@ -27,11 +27,17 @@ const steps = [
   },
 ];
 
-const modules = [
-  ["Clientes", "CRM operacional simples para pequenos negócios automotivos.", Users],
-  ["Veículos", "Histórico por placa, modelo e cliente responsável.", Car],
-  ["Estoque", "Produtos, peças e insumos usados nos serviços.", Package],
-  ["Ordens", "Abertura, acompanhamento e conclusão de OS.", ClipboardList],
+type ModuleCard = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+};
+
+const modules: ModuleCard[] = [
+  { title: "Clientes", description: "CRM operacional simples para pequenos negócios automotivos.", icon: Users },
+  { title: "Veículos", description: "Histórico por placa, modelo e cliente responsável.", icon: Car },
+  { title: "Estoque", description: "Produtos, peças e insumos usados nos serviços.", icon: Package },
+  { title: "Ordens", description: "Abertura, acompanhamento e conclusão de OS.", icon: ClipboardList },
 ];
 
 export default function DemoPage() {
@@ -102,13 +108,16 @@ export default function DemoPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {modules.map(([title, description, Icon]) => (
-              <div key={title as string} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                <Icon className="h-6 w-6 text-blue-700" />
-                <p className="mt-4 font-black">{title}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-              </div>
-            ))}
+            {modules.map((module) => {
+              const Icon = module.icon;
+              return (
+                <div key={module.title} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <Icon className="h-6 w-6 text-blue-700" />
+                  <p className="mt-4 font-black">{module.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{module.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
