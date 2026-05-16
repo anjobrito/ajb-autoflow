@@ -18,12 +18,24 @@ export type StoredVehicle = {
   mileage: string;
 };
 
+export type StoredSupplier = {
+  id: string;
+  name: string;
+  document: string;
+  phone: string;
+  email: string;
+  city: string;
+  state: string;
+};
+
 export type StoredProduct = {
   id: string;
   name: string;
   category: string;
+  supplier: string;
   stock: string;
   minStock: string;
+  costPrice: string;
   price: string;
 };
 
@@ -63,10 +75,8 @@ const companyKey = "ajb-autoflow-company";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
-
   const raw = window.localStorage.getItem(key);
   if (!raw) return [];
-
   try {
     return JSON.parse(raw) as T[];
   } catch {
@@ -80,13 +90,9 @@ function writeList<T>(key: string, value: T[]) {
 }
 
 export function getCompany(): StoredCompany {
-  if (typeof window === "undefined") {
-    return defaultCompany;
-  }
-
+  if (typeof window === "undefined") return defaultCompany;
   const raw = window.localStorage.getItem(companyKey);
   if (!raw) return defaultCompany;
-
   try {
     return JSON.parse(raw) as StoredCompany;
   } catch {
@@ -133,6 +139,17 @@ export function saveVehicle(vehicle: Omit<StoredVehicle, "id">) {
   return record;
 }
 
+export function listSuppliers() {
+  return readList<StoredSupplier>("ajb-autoflow-suppliers");
+}
+
+export function saveSupplier(supplier: Omit<StoredSupplier, "id">) {
+  const suppliers = listSuppliers();
+  const record = { ...supplier, id: crypto.randomUUID() };
+  writeList("ajb-autoflow-suppliers", [record, ...suppliers]);
+  return record;
+}
+
 export function listProducts() {
   return readList<StoredProduct>("ajb-autoflow-products");
 }
@@ -171,13 +188,27 @@ export function findWorkOrderById(id: string) {
   return listWorkOrders().find((order) => order.id === id);
 }
 
+export function currencyToNumber(value: string) {
+  const normalized = value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function calculateMargin(costPrice: string, salePrice: string) {
+  const cost = currencyToNumber(costPrice);
+  const sale = currencyToNumber(salePrice);
+  const profit = sale - cost;
+  const margin = sale > 0 ? (profit / sale) * 100 : 0;
+  return { profit, margin };
+}
+
 export function getDashboardStats() {
   const workOrders = listWorkOrders();
   const products = listProducts();
-
   return {
     customers: listCustomers().length,
     vehicles: listVehicles().length,
+    suppliers: listSuppliers().length,
     products: products.length,
     services: listServices().length,
     workOrders: workOrders.length,
