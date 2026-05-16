@@ -22,9 +22,14 @@ export default function Home() {
                 <p className="text-xs text-blue-100">by AJBSYSTEMS</p>
               </div>
             </div>
-            <a href="/comece-agora" className="hidden rounded-full bg-white px-5 py-2 text-sm font-black text-slate-950 sm:inline-flex">
-              Comece agora
-            </a>
+            <nav className="hidden items-center gap-3 sm:flex">
+              <a href="/planos" className="rounded-full border border-white/20 px-5 py-2 text-sm font-bold text-white hover:bg-white/10">
+                Planos
+              </a>
+              <a href="/comece-agora" className="rounded-full bg-white px-5 py-2 text-sm font-black text-slate-950">
+                Comece agora
+              </a>
+            </nav>
           </header>
 
           <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -43,8 +48,11 @@ export default function Home() {
                 <a href="/comece-agora" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-500 px-6 py-4 font-bold text-white hover:bg-blue-400">
                   Comece agora <ArrowRight className="h-5 w-5" />
                 </a>
+                <a href="/planos" className="inline-flex items-center justify-center rounded-2xl border border-white/20 px-6 py-4 font-bold text-white hover:bg-white/10">
+                  Ver planos
+                </a>
                 <a href="/dashboard" className="inline-flex items-center justify-center rounded-2xl border border-white/20 px-6 py-4 font-bold text-white hover:bg-white/10">
-                  Abrir painel demo
+                  Demo
                 </a>
               </div>
             </div>
@@ -98,7 +106,10 @@ export default function Home() {
           <p className="mt-4 max-w-2xl text-slate-300">Foco em oficina e lava-jato que precisam controlar atendimento pelo celular.</p>
           <p className="mt-8 text-5xl font-black">R$ 49,90</p>
           <p className="mt-1 text-sm text-slate-300">por mês por empresa</p>
-          <a href="/comece-agora" className="mt-8 inline-flex rounded-2xl bg-blue-500 px-6 py-4 font-black text-white hover:bg-blue-400">Começar teste agora</a>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="/comece-agora" className="inline-flex rounded-2xl bg-blue-500 px-6 py-4 font-black text-white hover:bg-blue-400">Começar teste agora</a>
+            <a href="/planos" className="inline-flex rounded-2xl border border-white/20 px-6 py-4 font-black text-white hover:bg-white/10">Ver todos os planos</a>
+          </div>
         </div>
       </section>
     </main>
