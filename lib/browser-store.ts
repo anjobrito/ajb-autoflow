@@ -55,8 +55,16 @@ export type StoredWorkOrder = {
   vehicle: string;
   service: string;
   product: string;
-  status: string;
+  productQuantity: string;
+  productCost: string;
+  productSale: string;
+  serviceSale: string;
+  partsTotal: string;
+  servicesTotal: string;
   total: string;
+  estimatedProfit: string;
+  estimatedMargin: string;
+  status: string;
   notes: string;
 };
 
@@ -161,6 +169,16 @@ export function saveProduct(product: Omit<StoredProduct, "id">) {
   return record;
 }
 
+export function updateProductStock(productName: string, quantity: number) {
+  const products = listProducts();
+  const updated = products.map((product) => {
+    if (product.name !== productName) return product;
+    const nextStock = Math.max(0, Number(product.stock || 0) - quantity);
+    return { ...product, stock: String(nextStock) };
+  });
+  writeList("ajb-autoflow-products", updated);
+}
+
 export function listServices() {
   return readList<StoredService>("ajb-autoflow-services");
 }
@@ -181,6 +199,10 @@ export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
   const nextNumber = 2000 + orders.length + 1;
   const record = { ...order, id: `os-${nextNumber}`, code: `OS-${nextNumber}` };
   writeList("ajb-autoflow-work-orders", [record, ...orders]);
+  const quantity = Number(order.productQuantity || 0);
+  if (order.product && quantity > 0) {
+    updateProductStock(order.product, quantity);
+  }
   return record;
 }
 
@@ -192,6 +214,10 @@ export function currencyToNumber(value: string) {
   const normalized = value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function numberToCurrency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export function calculateMargin(costPrice: string, salePrice: string) {
@@ -216,4 +242,13 @@ export function getDashboardStats() {
     readyWorkOrders: workOrders.filter((order) => order.status === "Pronta para retirada").length,
     lowStock: products.filter((product) => Number(product.stock) <= Number(product.minStock)).length,
   };
+}
+
+export function getFinancialSummary() {
+  const workOrders = listWorkOrders();
+  const revenue = workOrders.reduce((sum, order) => sum + currencyToNumber(order.total), 0);
+  const profit = workOrders.reduce((sum, order) => sum + currencyToNumber(order.estimatedProfit || "0"), 0);
+  const ticket = workOrders.length > 0 ? revenue / workOrders.length : 0;
+  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+  return { revenue, profit, ticket, margin, workOrders: workOrders.length };
 }
