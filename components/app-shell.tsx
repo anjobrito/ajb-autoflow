@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Building2, Car, ClipboardList, Gauge, Package, Settings, Users, Wrench } from "lucide-react";
+import { BadgeDollarSign, Bell, Building2, Car, ClipboardList, Gauge, Package, Settings, Users, Wrench } from "lucide-react";
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: Gauge },
@@ -9,6 +9,7 @@ const menu = [
   { label: "Estoque", href: "/produtos", icon: Package },
   { label: "Serviços", href: "/servicos", icon: Wrench },
   { label: "Ordens", href: "/ordens-servico", icon: ClipboardList },
+  { label: "Financeiro", href: "/financeiro", icon: BadgeDollarSign },
   { label: "Lembretes", href: "/lembretes", icon: Bell },
   { label: "Empresa", href: "/empresa", icon: Settings },
 ];
