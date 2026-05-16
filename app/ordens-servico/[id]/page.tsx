@@ -2,7 +2,13 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { WorkOrderDetailClient } from "@/components/work-order-detail-client";
 
-export default function OrdemServicoDetalhePage({ params }: { params: { id: string } }) {
+type OrdemServicoDetalhePageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function OrdemServicoDetalhePage({ params }: OrdemServicoDetalhePageProps) {
+  const { id } = await params;
+
   return (
     <AppShell>
       <PageHeader
@@ -12,7 +18,7 @@ export default function OrdemServicoDetalhePage({ params }: { params: { id: stri
         actionLabel="Nova OS"
         actionHref="/ordens-servico/nova"
       />
-      <WorkOrderDetailClient id={params.id} />
+      <WorkOrderDetailClient id={id} />
     </AppShell>
   );
 }
