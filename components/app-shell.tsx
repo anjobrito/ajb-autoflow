@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Bell, Car, ClipboardList, Gauge, Package, Settings, Users, Wrench } from "lucide-react";
+import { Bell, Building2, Car, ClipboardList, Gauge, Package, Settings, Users, Wrench } from "lucide-react";
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: Gauge },
   { label: "Clientes", href: "/clientes", icon: Users },
   { label: "Veículos", href: "/veiculos", icon: Car },
+  { label: "Fornecedores", href: "/fornecedores", icon: Building2 },
   { label: "Estoque", href: "/produtos", icon: Package },
   { label: "Serviços", href: "/servicos", icon: Wrench },
   { label: "Ordens", href: "/ordens-servico", icon: ClipboardList },
