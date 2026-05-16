@@ -1,4 +1,4 @@
-# AIB AutoFlow
+# AJB AutoFlow
 
 SaaS multiempresa para gestão de oficinas, lava-jatos, estética automotiva e serviços automotivos.
 
@@ -10,7 +10,7 @@ Permitir que pequenas empresas automotivas controlem clientes, veículos, estoqu
 
 **Controle sua oficina ou lava-jato pelo celular.**
 
-O AIB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, clientes, veículos, peças, serviços e avisos ao cliente final quando o veículo estiver pronto para retirada.
+O AJB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, clientes, veículos, peças, serviços e avisos ao cliente final quando o veículo estiver pronto para retirada.
 
 ## MVP inicial
 
@@ -52,7 +52,7 @@ npm run dev
 Configure a variável `DATABASE_URL` no arquivo `.env`.
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/aib_autoflow?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/ajb_autoflow?schema=public"
 ```
 
 Depois execute:
