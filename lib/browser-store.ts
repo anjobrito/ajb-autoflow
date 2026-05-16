@@ -29,6 +29,17 @@ export type StoredSupplier = {
   state: string;
 };
 
+export type StoredEmployee = {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  email: string;
+  role: string;
+  employmentType: string;
+  status: string;
+};
+
 export type StoredProduct = {
   id: string;
   name: string;
@@ -111,6 +122,7 @@ export type StoredCompany = {
 };
 
 const companyKey = "ajb-autoflow-company";
+const employeesKey = "ajb-autoflow-employees";
 const workOrdersKey = "ajb-autoflow-work-orders";
 const inspectionsKey = "ajb-autoflow-inspections";
 const remindersKey = "ajb-autoflow-reminders";
@@ -177,6 +189,13 @@ export function listSuppliers() { return readList<StoredSupplier>("ajb-autoflow-
 export function saveSupplier(supplier: Omit<StoredSupplier, "id">) {
   const record = { ...supplier, id: crypto.randomUUID() };
   writeList("ajb-autoflow-suppliers", [record, ...listSuppliers()]);
+  return record;
+}
+
+export function listEmployees() { return readList<StoredEmployee>(employeesKey); }
+export function saveEmployee(employee: Omit<StoredEmployee, "id">) {
+  const record = { ...employee, id: crypto.randomUUID() };
+  writeList(employeesKey, [record, ...listEmployees()]);
   return record;
 }
 
