@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BusinessType {
+  AUTO_REPAIR
+  CAR_WASH
+  AUTO_DETAILING
+  AUTO_PARTS
+  OTHER
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  MECHANIC
+  ATTENDANT
+}
+
+enum WorkOrderStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_PARTS
+  READY_FOR_PICKUP
+  DELIVERED
+  CANCELED
+}
+
+enum ReminderChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  BLOCKED
+}
+
+model Company {
+  id                 String             @id @default(cuid())
+  name               String
+  tradeName          String?
+  cnpj               String             @unique
+  businessType       BusinessType       @default(AUTO_REPAIR)
+  email              String
+  phone              String?
+  city               String?
+  state              String?
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  users              User[]
+  customers          Customer[]
+  vehicles           Vehicle[]
+  products           Product[]
+  services           Service[]
+  workOrders         WorkOrder[]
+  reminders          MaintenanceReminder[]
+  subscription       Subscription?
+}
+
+model User {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(ATTENDANT)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  document  String?
+  email     String?
+  phone     String?
+  city      String?
+  state     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company  @relation(fields: [companyId], references: [id])
+  vehicles  Vehicle[]
+  workOrders WorkOrder[]
+  reminders MaintenanceReminder[]
+
+  @@index([companyId])
+}
+
+model Vehicle {
+  id         String   @id @default(cuid())
+  companyId  String
+  customerId String
+  plate      String
+  brand      String?
+  model      String
+  year       Int?
+  color      String?
+  mileage    Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company    Company  @relation(fields: [companyId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+  workOrders WorkOrder[]
+  reminders  MaintenanceReminder[]
+
+  @@index([companyId])
+  @@index([customerId])
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  companyId    String
+  sku          String?
+  barcode      String?
+  name         String
+  category     String?
+  brand        String?
+  costPrice    Decimal  @default(0)
+  salePrice    Decimal  @default(0)
+  currentStock Decimal  @default(0)
+  minStock     Decimal  @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company      Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+  price       Decimal  @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+model WorkOrder {
+  id          String          @id @default(cuid())
+  companyId   String
+  customerId  String
+  vehicleId   String
+  code        String
+  status      WorkOrderStatus @default(OPEN)
+  description String?
+  totalParts  Decimal         @default(0)
+  totalServices Decimal       @default(0)
+  totalAmount Decimal         @default(0)
+  openedAt    DateTime        @default(now())
+  closedAt    DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  company     Company         @relation(fields: [companyId], references: [id])
+  customer    Customer        @relation(fields: [customerId], references: [id])
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+
+  @@index([companyId])
+  @@index([customerId])
+  @@index([vehicleId])
+}
+
+model MaintenanceReminder {
+  id          String          @id @default(cuid())
+  companyId   String
+  customerId  String
+  vehicleId   String
+  title       String
+  description String?
+  dueDate     DateTime?
+  dueMileage  Int?
+  channel     ReminderChannel @default(EMAIL)
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  company     Company         @relation(fields: [companyId], references: [id])
+  customer    Customer        @relation(fields: [customerId], references: [id])
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+
+  @@index([companyId])
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  companyId String             @unique
+  plan      String             @default("START")
+  status    SubscriptionStatus @default(TRIAL)
+  priceCents Int               @default(4990)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  company   Company            @relation(fields: [companyId], references: [id])
+}
