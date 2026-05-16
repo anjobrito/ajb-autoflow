@@ -135,6 +135,10 @@ export const workOrderStatuses = [
   "Entregue",
 ] as const;
 
+export const commissionTargetTypes = ["Serviço", "Produto/peça", "Lavagem"] as const;
+export const commissionValueTypes = ["Percentual", "Valor fixo"] as const;
+export const commissionStatuses = ["Ativa", "Inativa"] as const;
+
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
