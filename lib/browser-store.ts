@@ -99,6 +99,19 @@ export type StoredReminder = {
   createdAt: string;
 };
 
+export type StoredCommission = {
+  id: string;
+  employeeId?: string;
+  employeeName: string;
+  targetType: string;
+  targetName: string;
+  valueType: string;
+  value: string;
+  status: string;
+  notes: string;
+  createdAt: string;
+};
+
 export type StoredCompany = {
   tradeName: string;
   legalName: string;
@@ -114,6 +127,7 @@ const companyKey = "ajb-autoflow-company";
 const workOrdersKey = "ajb-autoflow-work-orders";
 const inspectionsKey = "ajb-autoflow-inspections";
 const remindersKey = "ajb-autoflow-reminders";
+const commissionsKey = "ajb-autoflow-commissions";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -238,6 +252,13 @@ export function updateReminderStatus(id: string, status: StoredReminder["status"
   const updated = listReminders().map((reminder) => reminder.id === id ? { ...reminder, status } : reminder);
   writeList(remindersKey, updated);
   return updated.find((reminder) => reminder.id === id);
+}
+
+export function listCommissions() { return readList<StoredCommission>(commissionsKey); }
+export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt">) {
+  const record: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  writeList(commissionsKey, [record, ...listCommissions()]);
+  return record;
 }
 
 export function currencyToNumber(value: string) {
