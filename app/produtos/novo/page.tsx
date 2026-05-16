@@ -5,12 +5,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { listSuppliers, saveProduct, StoredSupplier } from "@/lib/browser-store";
+import { productCategories } from "@/lib/select-options";
 
-function Input({ name, label, placeholder }: { name: string; label: string; placeholder: string }) {
+function Input({ name, label, placeholder, inputMode }: { name: string; label: string; placeholder: string; inputMode?: "numeric" | "decimal" }) {
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
       {label}
-      <input name={name} required placeholder={placeholder} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" />
+      <input name={name} required inputMode={inputMode} placeholder={placeholder} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" />
     </label>
   );
 }
@@ -48,7 +49,12 @@ export default function NovoProdutoPage() {
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <div className="grid gap-4 md:grid-cols-2">
           <Input name="name" label="Nome do produto" placeholder="Ex: Óleo 5W30" />
-          <Input name="category" label="Categoria" placeholder="Ex: Lubrificante" />
+          <label className="grid gap-2 text-sm font-bold text-slate-700">
+            Categoria
+            <select name="category" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">
+              {productCategories.map((category) => <option key={category}>{category}</option>)}
+            </select>
+          </label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">
             Fornecedor
             <select name="supplier" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">
@@ -58,10 +64,10 @@ export default function NovoProdutoPage() {
               <option>Distribuidora Óleo Max</option>
             </select>
           </label>
-          <Input name="stock" label="Saldo atual" placeholder="Ex: 24" />
-          <Input name="minStock" label="Estoque mínimo" placeholder="Ex: 6" />
-          <Input name="costPrice" label="Preço de custo" placeholder="Ex: R$ 30,00" />
-          <Input name="price" label="Preço de venda" placeholder="Ex: R$ 42,90" />
+          <Input name="stock" label="Saldo atual" placeholder="Ex: 24" inputMode="numeric" />
+          <Input name="minStock" label="Estoque mínimo" placeholder="Ex: 6" inputMode="numeric" />
+          <Input name="costPrice" label="Preço de custo" placeholder="Ex: R$ 30,00" inputMode="decimal" />
+          <Input name="price" label="Preço de venda" placeholder="Ex: R$ 42,90" inputMode="decimal" />
         </div>
         <div className="mt-6 flex items-center justify-end gap-3">
           {saved ? <span className="text-sm font-bold text-emerald-700">Produto salvo!</span> : null}
