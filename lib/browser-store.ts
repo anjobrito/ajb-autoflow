@@ -70,6 +70,22 @@ export type StoredWorkOrder = {
   finishedAt?: string;
 };
 
+export type StoredInspection = {
+  id: string;
+  workOrderId: string;
+  plate: string;
+  mileage: string;
+  fuelLevel: string;
+  hasDocuments: boolean;
+  hasSpareTire: boolean;
+  hasJack: boolean;
+  hasPersonalItems: boolean;
+  personalItems: string;
+  damages: string[];
+  notes: string;
+  createdAt: string;
+};
+
 export type StoredCompany = {
   tradeName: string;
   legalName: string;
@@ -83,6 +99,7 @@ export type StoredCompany = {
 
 const companyKey = "ajb-autoflow-company";
 const workOrdersKey = "ajb-autoflow-work-orders";
+const inspectionsKey = "ajb-autoflow-inspections";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -225,6 +242,21 @@ export function updateWorkOrderStatus(id: string, status: string) {
 
 export function findWorkOrderById(id: string) {
   return listWorkOrders().find((order) => order.id === id);
+}
+
+export function listInspections() {
+  return readList<StoredInspection>(inspectionsKey);
+}
+
+export function findInspectionByWorkOrderId(workOrderId: string) {
+  return listInspections().find((inspection) => inspection.workOrderId === workOrderId);
+}
+
+export function saveInspection(inspection: Omit<StoredInspection, "id" | "createdAt">) {
+  const inspections = listInspections().filter((item) => item.workOrderId !== inspection.workOrderId);
+  const record = { ...inspection, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  writeList(inspectionsKey, [record, ...inspections]);
+  return record;
 }
 
 export function currencyToNumber(value: string) {
