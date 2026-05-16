@@ -48,6 +48,19 @@ export type StoredWorkOrder = {
   notes: string;
 };
 
+export type StoredCompany = {
+  tradeName: string;
+  legalName: string;
+  cnpj: string;
+  businessType: string;
+  city: string;
+  state: string;
+  phone: string;
+  email: string;
+};
+
+const companyKey = "ajb-autoflow-company";
+
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
 
@@ -65,6 +78,38 @@ function writeList<T>(key: string, value: T[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(key, JSON.stringify(value));
 }
+
+export function getCompany(): StoredCompany {
+  if (typeof window === "undefined") {
+    return defaultCompany;
+  }
+
+  const raw = window.localStorage.getItem(companyKey);
+  if (!raw) return defaultCompany;
+
+  try {
+    return JSON.parse(raw) as StoredCompany;
+  } catch {
+    return defaultCompany;
+  }
+}
+
+export function saveCompany(company: StoredCompany) {
+  if (typeof window === "undefined") return company;
+  window.localStorage.setItem(companyKey, JSON.stringify(company));
+  return company;
+}
+
+export const defaultCompany: StoredCompany = {
+  tradeName: "AutoFlow Garage",
+  legalName: "Oficina Demo AutoFlow Ltda",
+  cnpj: "12.345.678/0001-90",
+  businessType: "Oficina mecânica e lava-jato",
+  city: "Araras",
+  state: "SP",
+  phone: "(19) 99999-0000",
+  email: "contato@ajbsystems.com.br",
+};
 
 export function listCustomers() {
   return readList<StoredCustomer>("ajb-autoflow-customers");
@@ -124,4 +169,20 @@ export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
 
 export function findWorkOrderById(id: string) {
   return listWorkOrders().find((order) => order.id === id);
+}
+
+export function getDashboardStats() {
+  const workOrders = listWorkOrders();
+  const products = listProducts();
+
+  return {
+    customers: listCustomers().length,
+    vehicles: listVehicles().length,
+    products: products.length,
+    services: listServices().length,
+    workOrders: workOrders.length,
+    openWorkOrders: workOrders.filter((order) => order.status !== "Pronta para retirada").length,
+    readyWorkOrders: workOrders.filter((order) => order.status === "Pronta para retirada").length,
+    lowStock: products.filter((product) => Number(product.stock) <= Number(product.minStock)).length,
+  };
 }
