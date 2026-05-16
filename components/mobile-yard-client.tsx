@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Play, Wrench } from "lucide-react";
-import { listWorkOrders, StoredWorkOrder } from "@/lib/browser-store";
+import { listWorkOrders, StoredWorkOrder, updateWorkOrderStatus } from "@/lib/browser-store";
 import { demoWorkOrders } from "@/lib/demo-data";
 
 type MobileCard = {
@@ -13,6 +13,7 @@ type MobileCard = {
   vehicle: string;
   service: string;
   status: string;
+  isDemo?: boolean;
 };
 
 const fallbackCards: MobileCard[] = demoWorkOrders.map((order) => ({
@@ -22,6 +23,7 @@ const fallbackCards: MobileCard[] = demoWorkOrders.map((order) => ({
   vehicle: `${order.plate} - ${order.vehicle}`,
   service: order.service,
   status: order.status,
+  isDemo: true,
 }));
 
 function statusLabel(status: string) {
@@ -32,10 +34,17 @@ function statusLabel(status: string) {
   return status;
 }
 
+function statusClass(status: string) {
+  if (status === "Em andamento") return "bg-emerald-400 text-slate-950";
+  if (status === "Pronta para retirada") return "bg-blue-400 text-slate-950";
+  if (status === "Aguardando peça") return "bg-amber-300 text-slate-950";
+  return "bg-white text-slate-950";
+}
+
 export function MobileYardClient() {
   const [cards, setCards] = useState<MobileCard[]>([]);
 
-  useEffect(() => {
+  function loadCards() {
     const stored = listWorkOrders().map((order: StoredWorkOrder) => ({
       id: order.id,
       code: order.code,
@@ -45,7 +54,21 @@ export function MobileYardClient() {
       status: order.status,
     }));
     setCards(stored.length > 0 ? stored : fallbackCards);
+  }
+
+  useEffect(() => {
+    loadCards();
   }, []);
+
+  function changeStatus(card: MobileCard, status: string) {
+    if (card.isDemo) {
+      setCards((current) => current.map((item) => item.id === card.id ? { ...item, status } : item));
+      return;
+    }
+
+    updateWorkOrderStatus(card.id, status);
+    loadCards();
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-5 text-white">
@@ -71,7 +94,7 @@ export function MobileYardClient() {
                 <h2 className="mt-1 text-2xl font-black">{card.vehicle}</h2>
                 <p className="mt-1 text-sm text-slate-300">{card.customer}</p>
               </div>
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-950">{statusLabel(card.status)}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(card.status)}`}>{statusLabel(card.status)}</span>
             </div>
 
             <div className="mt-5 rounded-2xl bg-slate-900 p-4">
@@ -80,11 +103,11 @@ export function MobileYardClient() {
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <button className="flex min-h-24 flex-col items-center justify-center rounded-3xl bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-950/30">
+              <button type="button" onClick={() => changeStatus(card, "Em andamento")} className="flex min-h-24 flex-col items-center justify-center rounded-3xl bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-950/30 disabled:opacity-50" disabled={card.status === "Em andamento" || card.status === "Pronta para retirada"}>
                 <Play className="h-8 w-8 fill-current" />
                 <span className="mt-2 text-lg font-black">Iniciar</span>
               </button>
-              <button className="flex min-h-24 flex-col items-center justify-center rounded-3xl bg-blue-500 text-white shadow-lg shadow-blue-950/30">
+              <button type="button" onClick={() => changeStatus(card, "Pronta para retirada")} className="flex min-h-24 flex-col items-center justify-center rounded-3xl bg-blue-500 text-white shadow-lg shadow-blue-950/30 disabled:opacity-50" disabled={card.status === "Pronta para retirada"}>
                 <CheckCircle2 className="h-8 w-8" />
                 <span className="mt-2 text-lg font-black">Finalizar</span>
               </button>
