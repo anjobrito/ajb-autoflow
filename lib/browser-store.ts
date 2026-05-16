@@ -99,6 +99,20 @@ export type StoredReminder = {
   createdAt: string;
 };
 
+export type StoredFinancialEntry = {
+  id: string;
+  type: "Pagar" | "Receber";
+  description: string;
+  category: string;
+  amount: string;
+  dueDate: string;
+  status: "Pendente" | "Pago" | "Recebido" | "Vencido" | "Cancelado";
+  paymentMethod: string;
+  notes: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
 export type StoredCompany = {
   tradeName: string;
   legalName: string;
@@ -114,6 +128,7 @@ const companyKey = "ajb-autoflow-company";
 const workOrdersKey = "ajb-autoflow-work-orders";
 const inspectionsKey = "ajb-autoflow-inspections";
 const remindersKey = "ajb-autoflow-reminders";
+const financialEntriesKey = "ajb-autoflow-financial-entries";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -238,6 +253,18 @@ export function updateReminderStatus(id: string, status: StoredReminder["status"
   const updated = listReminders().map((reminder) => reminder.id === id ? { ...reminder, status } : reminder);
   writeList(remindersKey, updated);
   return updated.find((reminder) => reminder.id === id);
+}
+
+export function listFinancialEntries() { return readList<StoredFinancialEntry>(financialEntriesKey); }
+export function saveFinancialEntry(entry: Omit<StoredFinancialEntry, "id" | "createdAt" | "updatedAt">) {
+  const record: StoredFinancialEntry = { ...entry, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  writeList(financialEntriesKey, [record, ...listFinancialEntries()]);
+  return record;
+}
+export function updateFinancialEntryStatus(id: string, status: StoredFinancialEntry["status"]) {
+  const updated = listFinancialEntries().map((entry) => entry.id === id ? { ...entry, status, updatedAt: new Date().toISOString() } : entry);
+  writeList(financialEntriesKey, updated);
+  return updated.find((entry) => entry.id === id);
 }
 
 export function currencyToNumber(value: string) {
