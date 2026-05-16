@@ -4,21 +4,21 @@ const plans = [
   {
     name: "Start",
     price: "R$ 49,90",
-    description: "Para oficina, lava-jato ou estética automotiva que quer começar simples.",
+    description: "Para oficina, lava-jato ou estética automotiva que quer vender melhor e organizar a operação.",
     features: ["Até 3 usuários", "Até 100 ordens de serviço/mês", "Clientes e veículos", "Estoque básico", "Avisos por e-mail"],
     highlight: true,
   },
   {
     name: "Pro",
     price: "R$ 79,90",
-    description: "Para negócios que querem mais volume e recursos operacionais.",
+    description: "Para negócios que precisam controlar volume, pátio, equipe e financeiro operacional.",
     features: ["Usuários adicionais", "OS ilimitadas", "Lembretes de manutenção", "Relatórios operacionais", "Prioridade em melhorias"],
     highlight: false,
   },
   {
     name: "Add-ons",
     price: "Sob consulta",
-    description: "Módulos pagos conforme necessidade do cliente.",
+    description: "Módulos comerciais para evoluir o SaaS conforme a maturidade do cliente.",
     features: ["SMS", "WhatsApp oficial", "Importação XML", "NFe futura", "Customizações comerciais"],
     highlight: false,
   },
@@ -44,9 +44,9 @@ export default function PlanosPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Planos simples</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Comece barato, venda rápido e evolua com clientes reais.</h1>
-          <p className="mt-5 text-lg leading-8 text-slate-600">O AJB AutoFlow nasce para pequenos negócios automotivos que precisam controlar OS, clientes, veículos e estoque pelo celular.</p>
+          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Planos SaaS para operação automotiva</p>
+          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Comece barato, demonstre valor rápido e evolua com clientes reais.</h1>
+          <p className="mt-5 text-lg leading-8 text-slate-600">O AJB AutoFlow by AJBSYSTEMS nasce para pequenos negócios automotivos que precisam controlar OS, pátio, clientes, veículos, estoque, margem e financeiro operacional pelo celular.</p>
         </div>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -65,7 +65,7 @@ export default function PlanosPage() {
                 ))}
               </div>
               <a href="/comece-agora" className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black ${plan.highlight ? "bg-blue-500 text-white hover:bg-blue-400" : "bg-slate-950 text-white hover:bg-slate-800"}`}>
-                Começar teste <ArrowRight className="h-4 w-4" />
+                Começar demonstração <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           ))}
