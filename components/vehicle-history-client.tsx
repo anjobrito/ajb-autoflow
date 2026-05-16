@@ -39,7 +39,7 @@ export function VehicleHistoryClient() {
       model: `${vehicle.brand} ${vehicle.model}`.trim(),
       customer: vehicle.customer,
       mileage: vehicle.mileage,
-      source: "Cadastro",
+      powertrain: vehicle.powertrain || "Não informado",
     }));
 
     const demo = demoVehicles.map((vehicle) => ({
@@ -47,7 +47,7 @@ export function VehicleHistoryClient() {
       model: vehicle.model,
       customer: vehicle.customer,
       mileage: vehicle.mileage,
-      source: "Demo",
+      powertrain: "Não informado",
     }));
 
     const all = [...stored, ...demo];
@@ -56,22 +56,24 @@ export function VehicleHistoryClient() {
   }, [selectedPlate, vehicles]);
 
   const history = useMemo(() => {
-    const storedHistory = orders.map((order) => ({
-      id: order.id,
-      code: order.code,
-      plate: extractPlate(order.vehicle),
-      customer: order.customer,
-      vehicle: order.vehicle,
-      service: order.service,
-      product: order.product,
-      status: order.status,
-      total: order.total,
-      profit: order.estimatedProfit,
-      margin: order.estimatedMargin,
-      startedAt: order.startedAt,
-      finishedAt: order.finishedAt,
-      source: "Cadastro",
-    }));
+    const storedHistory = orders.map((order) => {
+      const plate = extractPlate(order.vehicle);
+      const vehicle = vehicles.find((item) => normalizePlate(item.plate) === normalizePlate(plate));
+
+      return {
+        id: order.id,
+        code: order.code,
+        plate,
+        customer: order.customer,
+        vehicle: order.vehicle,
+        powertrain: vehicle?.powertrain || "Não informado",
+        service: order.service,
+        product: order.product,
+        status: order.status,
+        total: order.total,
+        source: "Cadastro",
+      };
+    });
 
     const demoHistory = demoWorkOrders.map((order) => ({
       id: order.id,
@@ -79,21 +81,18 @@ export function VehicleHistoryClient() {
       plate: order.plate,
       customer: order.customer,
       vehicle: `${order.plate} - ${order.vehicle}`,
+      powertrain: "Não informado",
       service: order.service,
       product: "Produto demo",
       status: order.status,
       total: order.total,
-      profit: "R$ 0,00",
-      margin: "0,0%",
-      startedAt: undefined,
-      finishedAt: undefined,
       source: "Demo",
     }));
 
     const all = [...storedHistory, ...demoHistory];
     if (!selectedPlate) return [];
     return all.filter((item) => normalizePlate(item.plate).includes(selectedPlate));
-  }, [orders, selectedPlate]);
+  }, [orders, selectedPlate, vehicles]);
 
   const inspectionHistory = useMemo(() => {
     if (!selectedPlate) return [];
@@ -139,6 +138,7 @@ export function VehicleHistoryClient() {
               <p className="mt-1 text-lg font-black text-slate-950">{vehicle.model}</p>
               <p className="mt-1 text-sm text-slate-600">Cliente: {vehicle.customer}</p>
               <p className="mt-1 text-sm text-slate-600">KM: {vehicle.mileage || "Não informado"}</p>
+              <p className="mt-1 text-sm text-slate-600">Propulsão: {vehicle.powertrain}</p>
             </div>
           ))}
         </div>
@@ -150,10 +150,10 @@ export function VehicleHistoryClient() {
           <p className="mt-2 text-sm text-slate-600">Digite uma placa para visualizar atendimentos anteriores.</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left text-sm">
+          <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                {['OS', 'Cliente', 'Veículo', 'Serviço', 'Produto', 'Status', 'Total', 'Detalhe'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
+                {['OS', 'Cliente', 'Veículo', 'Propulsão', 'Serviço', 'Produto', 'Status', 'Total', 'Detalhe'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -162,6 +162,7 @@ export function VehicleHistoryClient() {
                   <td className="px-5 py-4 font-black text-slate-950">{item.code}</td>
                   <td className="px-5 py-4 text-slate-700">{item.customer}</td>
                   <td className="px-5 py-4 text-slate-700">{item.vehicle}</td>
+                  <td className="px-5 py-4 text-slate-700">{item.powertrain}</td>
                   <td className="px-5 py-4 text-slate-700">{item.service}</td>
                   <td className="px-5 py-4 text-slate-700">{item.product}</td>
                   <td className="px-5 py-4"><span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">{item.status}</span></td>
@@ -169,7 +170,7 @@ export function VehicleHistoryClient() {
                   <td className="px-5 py-4"><Link href={`/ordens-servico/${item.id}`} className="font-black text-blue-700">Abrir</Link></td>
                 </tr>
               )) : (
-                <tr><td colSpan={8} className="px-5 py-10 text-center text-slate-500">Digite uma placa para consultar o histórico.</td></tr>
+                <tr><td colSpan={9} className="px-5 py-10 text-center text-slate-500">Digite uma placa para consultar o histórico.</td></tr>
               )}
             </tbody>
           </table>
