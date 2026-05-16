@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { getCompany, saveCompany, StoredCompany } from "@/lib/browser-store";
 import { businessTypes } from "@/lib/business-types";
+import { brazilianStates, commonCities } from "@/lib/select-options";
 
 function Input({ label, name, value, onChange }: { label: string; name: keyof StoredCompany; value: string; onChange: (name: keyof StoredCompany, value: string) => void }) {
   return (
@@ -13,14 +14,12 @@ function Input({ label, name, value, onChange }: { label: string; name: keyof St
   );
 }
 
-function BusinessTypeSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function SelectField({ label, value, options, onChange }: { label: string; value: string; options: readonly string[]; onChange: (value: string) => void }) {
   return (
     <label className="grid gap-2 text-sm font-bold text-slate-700">
-      Tipo de negócio
+      {label}
       <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">
-        {businessTypes.map((type) => (
-          <option key={type} value={type}>{type}</option>
-        ))}
+        {options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
   );
@@ -35,6 +34,8 @@ export function CompanyClient() {
     setCompany({
       ...loaded,
       businessType: businessTypes.includes(loaded.businessType as typeof businessTypes[number]) ? loaded.businessType : "Oficina mecânica",
+      city: commonCities.includes(loaded.city as typeof commonCities[number]) ? loaded.city : "Outra",
+      state: brazilianStates.includes(loaded.state as typeof brazilianStates[number]) ? loaded.state : "SP",
     });
   }, []);
 
@@ -50,9 +51,7 @@ export function CompanyClient() {
     setTimeout(() => setSaved(false), 1800);
   }
 
-  if (!company) {
-    return <div className="rounded-3xl bg-white p-6 shadow-sm">Carregando dados da empresa...</div>;
-  }
+  if (!company) return <div className="rounded-3xl bg-white p-6 shadow-sm">Carregando dados da empresa...</div>;
 
   const cards = [
     ["Nome fantasia", company.tradeName],
@@ -67,15 +66,15 @@ export function CompanyClient() {
     <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-950">Configuração da empresa</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha um tipo fixo de negócio para o sistema adaptar módulos, lembretes e linguagem operacional.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha valores padronizados para o sistema adaptar módulos, lembretes e linguagem operacional.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Input label="Nome fantasia" name="tradeName" value={company.tradeName} onChange={updateField} />
           <Input label="Razão social" name="legalName" value={company.legalName} onChange={updateField} />
           <Input label="CNPJ" name="cnpj" value={company.cnpj} onChange={updateField} />
-          <BusinessTypeSelect value={company.businessType} onChange={(value) => updateField("businessType", value)} />
-          <Input label="Cidade" name="city" value={company.city} onChange={updateField} />
-          <Input label="Estado" name="state" value={company.state} onChange={updateField} />
+          <SelectField label="Tipo de negócio" value={company.businessType} options={businessTypes} onChange={(value) => updateField("businessType", value)} />
+          <SelectField label="Cidade" value={company.city} options={commonCities} onChange={(value) => updateField("city", value)} />
+          <SelectField label="Estado" value={company.state} options={brazilianStates} onChange={(value) => updateField("state", value)} />
           <Input label="Telefone" name="phone" value={company.phone} onChange={updateField} />
           <Input label="E-mail" name="email" value={company.email} onChange={updateField} />
         </div>
