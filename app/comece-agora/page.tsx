@@ -50,7 +50,10 @@ export default function ComeceAgoraPage() {
               <p className="text-xs text-blue-100">by AJBSYSTEMS</p>
             </div>
           </a>
-          <a href="/dashboard" className="hidden rounded-full border border-white/20 px-5 py-2 text-sm font-semibold sm:inline-flex">Painel demo</a>
+          <nav className="hidden items-center gap-3 sm:flex">
+            <a href="/planos" className="rounded-full border border-white/20 px-5 py-2 text-sm font-bold text-white hover:bg-white/10">Planos</a>
+            <a href="/dashboard" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">Painel demo</a>
+          </nav>
         </div>
       </section>
 
@@ -70,6 +73,7 @@ export default function ComeceAgoraPage() {
               </div>
             ))}
           </div>
+          <a href="/planos" className="mt-8 inline-flex rounded-2xl border border-white/20 px-5 py-3 text-sm font-black text-white hover:bg-white/10">Comparar planos</a>
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-[2rem] bg-white p-6 shadow-sm md:p-8">
