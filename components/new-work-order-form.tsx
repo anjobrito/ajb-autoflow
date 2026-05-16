@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { demoCustomers, demoProducts, demoServices, demoVehicles } from "@/lib/demo-data";
 import { currencyToNumber, listCustomers, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
+import { newWorkOrderStatuses } from "@/lib/select-options";
 
 function pct(value: number) {
   return `${value.toFixed(1).replace(".", ",")}%`;
@@ -88,7 +89,7 @@ export function NewWorkOrderForm() {
           <label className="grid gap-2 text-sm font-bold text-slate-700">Serviço<select value={selectedService} onChange={(event) => setSelectedService(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{serviceOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{["Aberta", "Em andamento", "Aguardando peça", "Pronta para retirada"].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{newWorkOrderStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
         </div>
 
         <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o problema, serviço solicitado ou orientação ao mecânico." /></label>
