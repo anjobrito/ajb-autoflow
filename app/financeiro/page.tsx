@@ -9,6 +9,8 @@ export default function FinanceiroPage() {
         eyebrow="Gestão financeira"
         title="Financeiro"
         description="Veja faturamento, lucro estimado, ticket médio e margem geral das ordens de serviço."
+        actionLabel="Contas operacionais"
+        actionHref="/financeiro/contas"
       />
       <FinanceClient />
     </AppShell>
