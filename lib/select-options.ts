@@ -135,6 +135,81 @@ export const workOrderStatuses = [
   "Entregue",
 ] as const;
 
+export const newWorkOrderStatuses = [
+  "Aberta",
+  "Em andamento",
+  "Aguardando peça",
+  "Pronta para retirada",
+] as const;
+
+export const employeeRoles = [
+  "Mecânico",
+  "Eletricista automotivo",
+  "Lavador",
+  "Detailer",
+  "Atendente",
+  "Consultor técnico",
+  "Estoquista",
+  "Financeiro",
+  "Gerente",
+  "Outro",
+] as const;
+
+export const employeeEmploymentTypes = [
+  "CLT",
+  "PJ",
+  "Autônomo",
+  "Freelancer",
+  "Estágio",
+  "Temporário",
+] as const;
+
+export const employeeStatuses = ["Ativo", "Inativo", "Afastado"] as const;
+
+export const commissionTargetTypes = ["Serviço", "Produto/peça", "Lavagem"] as const;
+export const commissionValueTypes = ["Percentual", "Valor fixo"] as const;
+export const commissionStatuses = ["Ativa", "Inativa"] as const;
+
+export const financialEntryTypes = ["Pagar", "Receber"] as const;
+export const financialEntryCategories = [
+  "Peças e produtos",
+  "Serviços terceirizados",
+  "Aluguel",
+  "Salários",
+  "Comissões",
+  "Impostos e taxas",
+  "Energia elétrica",
+  "Água",
+  "Internet e telefone",
+  "Venda de serviço",
+  "Venda de peça/produto",
+  "Lavagem",
+  "Outro",
+] as const;
+export const financialEntryStatuses = ["Pendente", "Pago", "Recebido", "Vencido", "Cancelado"] as const;
+export const paymentMethods = ["Dinheiro", "Pix", "Cartão de débito", "Cartão de crédito", "Boleto", "Transferência", "Cheque", "Outro"] as const;
+
+export const carwashReminderTypes = [
+  "Lavagem mensal",
+  "Lavagem completa",
+  "Higienização interna",
+  "Detalhamento",
+] as const;
+
+export const partsReminderTypes = [
+  "Reposição de filtros",
+  "Compra recorrente de óleo",
+  "Pastilhas de freio",
+  "Reposição de estoque",
+] as const;
+
+export const workshopReminderTypes = [
+  "Troca de óleo",
+  "Revisão preventiva",
+  "Revisão de freios",
+  "Troca de filtros",
+] as const;
+
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
