@@ -16,7 +16,7 @@ export type StoredVehicle = {
   model: string;
   year: string;
   mileage: string;
-  powertrain: string;
+  powertrain?: string;
 };
 
 export type StoredSupplier = {
@@ -27,6 +27,17 @@ export type StoredSupplier = {
   email: string;
   city: string;
   state: string;
+};
+
+export type StoredEmployee = {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  email: string;
+  role: string;
+  employmentType: string;
+  status: string;
 };
 
 export type StoredProduct = {
@@ -99,6 +110,33 @@ export type StoredReminder = {
   createdAt: string;
 };
 
+export type StoredCommission = {
+  id: string;
+  employeeId?: string;
+  employeeName: string;
+  targetType: string;
+  targetName: string;
+  valueType: string;
+  value: string;
+  status: string;
+  notes: string;
+  createdAt: string;
+};
+
+export type StoredFinancialEntry = {
+  id: string;
+  type: "Pagar" | "Receber";
+  description: string;
+  category: string;
+  amount: string;
+  dueDate: string;
+  status: "Pendente" | "Pago" | "Recebido" | "Vencido" | "Cancelado";
+  paymentMethod: string;
+  notes: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
 export type StoredCompany = {
   tradeName: string;
   legalName: string;
@@ -111,9 +149,12 @@ export type StoredCompany = {
 };
 
 const companyKey = "ajb-autoflow-company";
+const employeesKey = "ajb-autoflow-employees";
 const workOrdersKey = "ajb-autoflow-work-orders";
 const inspectionsKey = "ajb-autoflow-inspections";
 const remindersKey = "ajb-autoflow-reminders";
+const commissionsKey = "ajb-autoflow-commissions";
+const financialEntriesKey = "ajb-autoflow-financial-entries";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -180,6 +221,13 @@ export function saveSupplier(supplier: Omit<StoredSupplier, "id">) {
   return record;
 }
 
+export function listEmployees() { return readList<StoredEmployee>(employeesKey); }
+export function saveEmployee(employee: Omit<StoredEmployee, "id">) {
+  const record = { ...employee, id: crypto.randomUUID() };
+  writeList(employeesKey, [record, ...listEmployees()]);
+  return record;
+}
+
 export function listProducts() { return readList<StoredProduct>("ajb-autoflow-products"); }
 export function saveProduct(product: Omit<StoredProduct, "id">) {
   const record = { ...product, id: crypto.randomUUID() };
@@ -240,6 +288,25 @@ export function updateReminderStatus(id: string, status: StoredReminder["status"
   return updated.find((reminder) => reminder.id === id);
 }
 
+export function listCommissions() { return readList<StoredCommission>(commissionsKey); }
+export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt">) {
+  const record: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  writeList(commissionsKey, [record, ...listCommissions()]);
+  return record;
+}
+
+export function listFinancialEntries() { return readList<StoredFinancialEntry>(financialEntriesKey); }
+export function saveFinancialEntry(entry: Omit<StoredFinancialEntry, "id" | "createdAt" | "updatedAt">) {
+  const record: StoredFinancialEntry = { ...entry, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  writeList(financialEntriesKey, [record, ...listFinancialEntries()]);
+  return record;
+}
+export function updateFinancialEntryStatus(id: string, status: StoredFinancialEntry["status"]) {
+  const updated = listFinancialEntries().map((entry) => entry.id === id ? { ...entry, status, updatedAt: new Date().toISOString() } : entry);
+  writeList(financialEntriesKey, updated);
+  return updated.find((entry) => entry.id === id);
+}
+
 export function currencyToNumber(value: string) {
   const parsed = Number(value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim());
   return Number.isFinite(parsed) ? parsed : 0;
@@ -260,6 +327,7 @@ export function getDashboardStats() {
     customers: listCustomers().length,
     vehicles: listVehicles().length,
     suppliers: listSuppliers().length,
+    employees: listEmployees().length,
     products: products.length,
     services: listServices().length,
     reminders: listReminders().length,
