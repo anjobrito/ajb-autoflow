@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Camera, CheckSquare, Clock, Timer, Wrench } from "lucide-react";
 import { demoWorkOrders } from "@/lib/demo-data";
-import { findInspectionByWorkOrderId, findWorkOrderById, StoredInspection, StoredWorkOrder } from "@/lib/browser-store";
+import { findInspectionByWorkOrderId, findWorkOrderById, listVehicles, StoredInspection, StoredVehicle, StoredWorkOrder } from "@/lib/browser-store";
 
 type DetailOrder = {
   id: string;
@@ -12,6 +12,7 @@ type DetailOrder = {
   customer: string;
   vehicle: string;
   plate?: string;
+  powertrain?: string;
   service: string;
   product?: string;
   status: string;
@@ -38,23 +39,33 @@ function formatDuration(start?: string, end?: string) {
   return hours <= 0 ? `${minutes} min` : `${hours}h ${minutes}min`;
 }
 
+function normalizePlate(value: string) {
+  return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+}
+
 export function WorkOrderDetailClient({ id }: { id: string }) {
   const [storedOrder, setStoredOrder] = useState<StoredWorkOrder | null>(null);
   const [inspection, setInspection] = useState<StoredInspection | null>(null);
+  const [vehicles, setVehicles] = useState<StoredVehicle[]>([]);
 
   useEffect(() => {
     setStoredOrder(findWorkOrderById(id) ?? null);
     setInspection(findInspectionByWorkOrderId(id) ?? null);
+    setVehicles(listVehicles());
   }, [id]);
 
   const order: DetailOrder = useMemo(() => {
     if (storedOrder) {
+      const plate = storedOrder.vehicle.split(" - ")[0] ?? "";
+      const vehicle = vehicles.find((item) => normalizePlate(item.plate) === normalizePlate(plate));
+
       return {
         id: storedOrder.id,
         code: storedOrder.code,
         customer: storedOrder.customer,
         vehicle: storedOrder.vehicle,
-        plate: storedOrder.vehicle.split(" - ")[0] ?? "",
+        plate,
+        powertrain: vehicle?.powertrain || "Não informado",
         service: storedOrder.service,
         product: storedOrder.product,
         status: storedOrder.status,
@@ -67,13 +78,14 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
       };
     }
     const demo = demoWorkOrders.find((item) => item.id === id) ?? demoWorkOrders[2];
-    return demo;
-  }, [id, storedOrder]);
+    return { ...demo, powertrain: "Não informado" };
+  }, [id, storedOrder, vehicles]);
 
   const details = [
     ["Cliente", order.customer],
     ["Veículo", order.vehicle],
     ["Placa", order.plate ?? "Não informada"],
+    ["Propulsão", order.powertrain ?? "Não informado"],
     ["Serviço", order.service],
     ["Produto", order.product ?? "Não informado"],
     ["Status", order.status],
@@ -131,7 +143,7 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
         <p className="text-sm font-bold text-blue-300">Mensagem ao cliente</p><h2 className="mt-2 text-2xl font-black">Veículo pronto para retirada</h2>
         <p className="mt-4 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-slate-200">Olá, {order.customer}. O serviço do seu veículo {order.vehicle} foi finalizado pela AutoFlow Garage. Seu veículo já está disponível para retirada.</p>
         <form action="/api/notifications/vehicle-ready" method="post" className="mt-6"><input type="hidden" name="customer" value={order.customer} /><input type="hidden" name="vehicle" value={order.vehicle} /><input type="hidden" name="plate" value={order.plate ?? ""} /><button className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-950">Enviar aviso demo</button></form>
-        <p className="mt-4 text-xs leading-5 text-slate-400">No MVP real, esse botão usará Resend para e-mail e depois poderá evoluir para SMS ou WhatsApp oficial.</p>
+        <p className="mt-4 text-xs leading-5 text-slate-400">No MVP real, esse botão usará Resend para e-mail.</p>
       </div>
     </div>
   );
