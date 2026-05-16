@@ -18,6 +18,24 @@ export type StoredVehicle = {
   mileage: string;
 };
 
+export type StoredProduct = {
+  id: string;
+  name: string;
+  category: string;
+  stock: string;
+  minStock: string;
+  price: string;
+};
+
+export type StoredService = {
+  id: string;
+  name: string;
+  category: string;
+  duration: string;
+  price: string;
+  status: string;
+};
+
 export type StoredWorkOrder = {
   id: string;
   code: string;
@@ -49,35 +67,61 @@ function writeList<T>(key: string, value: T[]) {
 }
 
 export function listCustomers() {
-  return readList<StoredCustomer>("aib-autoflow-customers");
+  return readList<StoredCustomer>("ajb-autoflow-customers");
 }
 
 export function saveCustomer(customer: Omit<StoredCustomer, "id">) {
   const customers = listCustomers();
   const record = { ...customer, id: crypto.randomUUID() };
-  writeList("aib-autoflow-customers", [record, ...customers]);
+  writeList("ajb-autoflow-customers", [record, ...customers]);
   return record;
 }
 
 export function listVehicles() {
-  return readList<StoredVehicle>("aib-autoflow-vehicles");
+  return readList<StoredVehicle>("ajb-autoflow-vehicles");
 }
 
 export function saveVehicle(vehicle: Omit<StoredVehicle, "id">) {
   const vehicles = listVehicles();
   const record = { ...vehicle, id: crypto.randomUUID() };
-  writeList("aib-autoflow-vehicles", [record, ...vehicles]);
+  writeList("ajb-autoflow-vehicles", [record, ...vehicles]);
+  return record;
+}
+
+export function listProducts() {
+  return readList<StoredProduct>("ajb-autoflow-products");
+}
+
+export function saveProduct(product: Omit<StoredProduct, "id">) {
+  const products = listProducts();
+  const record = { ...product, id: crypto.randomUUID() };
+  writeList("ajb-autoflow-products", [record, ...products]);
+  return record;
+}
+
+export function listServices() {
+  return readList<StoredService>("ajb-autoflow-services");
+}
+
+export function saveService(service: Omit<StoredService, "id">) {
+  const services = listServices();
+  const record = { ...service, id: crypto.randomUUID() };
+  writeList("ajb-autoflow-services", [record, ...services]);
   return record;
 }
 
 export function listWorkOrders() {
-  return readList<StoredWorkOrder>("aib-autoflow-work-orders");
+  return readList<StoredWorkOrder>("ajb-autoflow-work-orders");
 }
 
 export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
   const orders = listWorkOrders();
   const nextNumber = 2000 + orders.length + 1;
   const record = { ...order, id: `os-${nextNumber}`, code: `OS-${nextNumber}` };
-  writeList("aib-autoflow-work-orders", [record, ...orders]);
+  writeList("ajb-autoflow-work-orders", [record, ...orders]);
   return record;
+}
+
+export function findWorkOrderById(id: string) {
+  return listWorkOrders().find((order) => order.id === id);
 }
