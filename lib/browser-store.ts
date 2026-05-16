@@ -66,6 +66,8 @@ export type StoredWorkOrder = {
   estimatedMargin: string;
   status: string;
   notes: string;
+  startedAt?: string;
+  finishedAt?: string;
 };
 
 export type StoredCompany = {
@@ -80,6 +82,7 @@ export type StoredCompany = {
 };
 
 const companyKey = "ajb-autoflow-company";
+const workOrdersKey = "ajb-autoflow-work-orders";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -191,19 +194,33 @@ export function saveService(service: Omit<StoredService, "id">) {
 }
 
 export function listWorkOrders() {
-  return readList<StoredWorkOrder>("ajb-autoflow-work-orders");
+  return readList<StoredWorkOrder>(workOrdersKey);
 }
 
 export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
   const orders = listWorkOrders();
   const nextNumber = 2000 + orders.length + 1;
   const record = { ...order, id: `os-${nextNumber}`, code: `OS-${nextNumber}` };
-  writeList("ajb-autoflow-work-orders", [record, ...orders]);
+  writeList(workOrdersKey, [record, ...orders]);
   const quantity = Number(order.productQuantity || 0);
-  if (order.product && quantity > 0) {
-    updateProductStock(order.product, quantity);
-  }
+  if (order.product && quantity > 0) updateProductStock(order.product, quantity);
   return record;
+}
+
+export function updateWorkOrderStatus(id: string, status: string) {
+  const orders = listWorkOrders();
+  const timestamp = new Date().toISOString();
+  const updated = orders.map((order) => {
+    if (order.id !== id) return order;
+    return {
+      ...order,
+      status,
+      startedAt: status === "Em andamento" ? timestamp : order.startedAt,
+      finishedAt: status === "Pronta para retirada" ? timestamp : order.finishedAt,
+    };
+  });
+  writeList(workOrdersKey, updated);
+  return updated.find((order) => order.id === id);
 }
 
 export function findWorkOrderById(id: string) {
