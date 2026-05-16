@@ -86,6 +86,18 @@ export type StoredInspection = {
   createdAt: string;
 };
 
+export type StoredReminder = {
+  id: string;
+  type: string;
+  customer: string;
+  plate: string;
+  dueDate: string;
+  channel: string;
+  message: string;
+  status: "Pendente" | "Enviado" | "Cancelado";
+  createdAt: string;
+};
+
 export type StoredCompany = {
   tradeName: string;
   legalName: string;
@@ -100,6 +112,7 @@ export type StoredCompany = {
 const companyKey = "ajb-autoflow-company";
 const workOrdersKey = "ajb-autoflow-work-orders";
 const inspectionsKey = "ajb-autoflow-inspections";
+const remindersKey = "ajb-autoflow-reminders";
 
 function readList<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -145,75 +158,47 @@ export const defaultCompany: StoredCompany = {
   email: "contato@ajbsystems.com.br",
 };
 
-export function listCustomers() {
-  return readList<StoredCustomer>("ajb-autoflow-customers");
-}
-
+export function listCustomers() { return readList<StoredCustomer>("ajb-autoflow-customers"); }
 export function saveCustomer(customer: Omit<StoredCustomer, "id">) {
-  const customers = listCustomers();
   const record = { ...customer, id: crypto.randomUUID() };
-  writeList("ajb-autoflow-customers", [record, ...customers]);
+  writeList("ajb-autoflow-customers", [record, ...listCustomers()]);
   return record;
 }
 
-export function listVehicles() {
-  return readList<StoredVehicle>("ajb-autoflow-vehicles");
-}
-
+export function listVehicles() { return readList<StoredVehicle>("ajb-autoflow-vehicles"); }
 export function saveVehicle(vehicle: Omit<StoredVehicle, "id">) {
-  const vehicles = listVehicles();
   const record = { ...vehicle, id: crypto.randomUUID() };
-  writeList("ajb-autoflow-vehicles", [record, ...vehicles]);
+  writeList("ajb-autoflow-vehicles", [record, ...listVehicles()]);
   return record;
 }
 
-export function listSuppliers() {
-  return readList<StoredSupplier>("ajb-autoflow-suppliers");
-}
-
+export function listSuppliers() { return readList<StoredSupplier>("ajb-autoflow-suppliers"); }
 export function saveSupplier(supplier: Omit<StoredSupplier, "id">) {
-  const suppliers = listSuppliers();
   const record = { ...supplier, id: crypto.randomUUID() };
-  writeList("ajb-autoflow-suppliers", [record, ...suppliers]);
+  writeList("ajb-autoflow-suppliers", [record, ...listSuppliers()]);
   return record;
 }
 
-export function listProducts() {
-  return readList<StoredProduct>("ajb-autoflow-products");
-}
-
+export function listProducts() { return readList<StoredProduct>("ajb-autoflow-products"); }
 export function saveProduct(product: Omit<StoredProduct, "id">) {
-  const products = listProducts();
   const record = { ...product, id: crypto.randomUUID() };
-  writeList("ajb-autoflow-products", [record, ...products]);
+  writeList("ajb-autoflow-products", [record, ...listProducts()]);
   return record;
 }
 
 export function updateProductStock(productName: string, quantity: number) {
-  const products = listProducts();
-  const updated = products.map((product) => {
-    if (product.name !== productName) return product;
-    const nextStock = Math.max(0, Number(product.stock || 0) - quantity);
-    return { ...product, stock: String(nextStock) };
-  });
+  const updated = listProducts().map((product) => product.name !== productName ? product : { ...product, stock: String(Math.max(0, Number(product.stock || 0) - quantity)) });
   writeList("ajb-autoflow-products", updated);
 }
 
-export function listServices() {
-  return readList<StoredService>("ajb-autoflow-services");
-}
-
+export function listServices() { return readList<StoredService>("ajb-autoflow-services"); }
 export function saveService(service: Omit<StoredService, "id">) {
-  const services = listServices();
   const record = { ...service, id: crypto.randomUUID() };
-  writeList("ajb-autoflow-services", [record, ...services]);
+  writeList("ajb-autoflow-services", [record, ...listServices()]);
   return record;
 }
 
-export function listWorkOrders() {
-  return readList<StoredWorkOrder>(workOrdersKey);
-}
-
+export function listWorkOrders() { return readList<StoredWorkOrder>(workOrdersKey); }
 export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
   const orders = listWorkOrders();
   const nextNumber = 2000 + orders.length + 1;
@@ -225,33 +210,16 @@ export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
 }
 
 export function updateWorkOrderStatus(id: string, status: string) {
-  const orders = listWorkOrders();
   const timestamp = new Date().toISOString();
-  const updated = orders.map((order) => {
-    if (order.id !== id) return order;
-    return {
-      ...order,
-      status,
-      startedAt: status === "Em andamento" ? timestamp : order.startedAt,
-      finishedAt: status === "Pronta para retirada" ? timestamp : order.finishedAt,
-    };
-  });
+  const updated = listWorkOrders().map((order) => order.id !== id ? order : { ...order, status, startedAt: status === "Em andamento" ? timestamp : order.startedAt, finishedAt: status === "Pronta para retirada" ? timestamp : order.finishedAt });
   writeList(workOrdersKey, updated);
   return updated.find((order) => order.id === id);
 }
 
-export function findWorkOrderById(id: string) {
-  return listWorkOrders().find((order) => order.id === id);
-}
+export function findWorkOrderById(id: string) { return listWorkOrders().find((order) => order.id === id); }
 
-export function listInspections() {
-  return readList<StoredInspection>(inspectionsKey);
-}
-
-export function findInspectionByWorkOrderId(workOrderId: string) {
-  return listInspections().find((inspection) => inspection.workOrderId === workOrderId);
-}
-
+export function listInspections() { return readList<StoredInspection>(inspectionsKey); }
+export function findInspectionByWorkOrderId(workOrderId: string) { return listInspections().find((inspection) => inspection.workOrderId === workOrderId); }
 export function saveInspection(inspection: Omit<StoredInspection, "id" | "createdAt">) {
   const inspections = listInspections().filter((item) => item.workOrderId !== inspection.workOrderId);
   const record = { ...inspection, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
@@ -259,16 +227,23 @@ export function saveInspection(inspection: Omit<StoredInspection, "id" | "create
   return record;
 }
 
+export function listReminders() { return readList<StoredReminder>(remindersKey); }
+export function saveReminder(reminder: Omit<StoredReminder, "id" | "createdAt" | "status">) {
+  const record: StoredReminder = { ...reminder, id: crypto.randomUUID(), status: "Pendente", createdAt: new Date().toISOString() };
+  writeList(remindersKey, [record, ...listReminders()]);
+  return record;
+}
+export function updateReminderStatus(id: string, status: StoredReminder["status"]) {
+  const updated = listReminders().map((reminder) => reminder.id === id ? { ...reminder, status } : reminder);
+  writeList(remindersKey, updated);
+  return updated.find((reminder) => reminder.id === id);
+}
+
 export function currencyToNumber(value: string) {
-  const normalized = value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
-  const parsed = Number(normalized);
+  const parsed = Number(value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim());
   return Number.isFinite(parsed) ? parsed : 0;
 }
-
-export function numberToCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
+export function numberToCurrency(value: number) { return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
 export function calculateMargin(costPrice: string, salePrice: string) {
   const cost = currencyToNumber(costPrice);
   const sale = currencyToNumber(salePrice);
@@ -286,6 +261,7 @@ export function getDashboardStats() {
     suppliers: listSuppliers().length,
     products: products.length,
     services: listServices().length,
+    reminders: listReminders().length,
     workOrders: workOrders.length,
     openWorkOrders: workOrders.filter((order) => order.status !== "Pronta para retirada").length,
     readyWorkOrders: workOrders.filter((order) => order.status === "Pronta para retirada").length,
