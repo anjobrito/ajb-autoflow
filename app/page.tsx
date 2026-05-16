@@ -18,8 +18,8 @@ export default function Home() {
                 <Gauge className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-lg font-black tracking-tight">AIB AutoFlow</p>
-                <p className="text-xs text-blue-100">by AIBSYSTEMS</p>
+                <p className="text-lg font-black tracking-tight">AJB AutoFlow</p>
+                <p className="text-xs text-blue-100">by AJBSYSTEMS</p>
               </div>
             </div>
             <a href="/dashboard" className="hidden rounded-full border border-white/20 px-5 py-2 text-sm font-semibold sm:inline-flex">
