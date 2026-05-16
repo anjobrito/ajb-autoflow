@@ -1,39 +1,74 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { demoCustomers, demoProducts, demoServices, demoVehicles } from "@/lib/demo-data";
-import { listCustomers, listVehicles, saveWorkOrder, StoredCustomer, StoredVehicle } from "@/lib/browser-store";
+import { currencyToNumber, listCustomers, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
+
+function pct(value: number) {
+  return `${value.toFixed(1).replace(".", ",")}%`;
+}
 
 export function NewWorkOrderForm() {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [customers, setCustomers] = useState<StoredCustomer[]>([]);
   const [vehicles, setVehicles] = useState<StoredVehicle[]>([]);
+  const [products, setProducts] = useState<StoredProduct[]>([]);
+  const [services, setServices] = useState<StoredService[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedService, setSelectedService] = useState("");
+  const [quantity, setQuantity] = useState("1");
 
   useEffect(() => {
+    const loadedProducts = listProducts();
+    const loadedServices = listServices();
     setCustomers(listCustomers());
     setVehicles(listVehicles());
+    setProducts(loadedProducts);
+    setServices(loadedServices);
+    setSelectedProduct(loadedProducts[0]?.name ?? demoProducts[0]?.name ?? "");
+    setSelectedService(loadedServices[0]?.name ?? demoServices[0]?.name ?? "");
   }, []);
 
-  const customerOptions = [...customers.map((customer) => customer.name), ...demoCustomers.map((customer) => customer.name)];
-  const vehicleOptions = [
-    ...vehicles.map((vehicle) => `${vehicle.plate} - ${vehicle.brand} ${vehicle.model}`.trim()),
-    ...demoVehicles.map((vehicle) => `${vehicle.plate} - ${vehicle.model}`),
+  const productOptions = [
+    ...products,
+    ...demoProducts.map((product) => ({ ...product, supplier: "Fornecedor demo", costPrice: product.name.includes("Óleo") ? "R$ 30,00" : "R$ 20,00" })),
   ];
+  const serviceOptions = [...services, ...demoServices];
+  const product = productOptions.find((item) => item.name === selectedProduct);
+  const service = serviceOptions.find((item) => item.name === selectedService);
+  const qty = Math.max(0, Number(quantity || 0));
+
+  const totals = useMemo(() => {
+    const productCost = currencyToNumber(product?.costPrice ?? "R$ 0,00") * qty;
+    const productSale = currencyToNumber(product?.price ?? "R$ 0,00") * qty;
+    const serviceSale = currencyToNumber(service?.price ?? "R$ 0,00");
+    const total = productSale + serviceSale;
+    const profit = productSale - productCost + serviceSale;
+    const margin = total > 0 ? (profit / total) * 100 : 0;
+    return { productCost, productSale, serviceSale, total, profit, margin };
+  }, [product, qty, service]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const formData = new FormData(event.currentTarget);
 
     const record = saveWorkOrder({
       customer: String(formData.get("customer") ?? ""),
       vehicle: String(formData.get("vehicle") ?? ""),
-      service: String(formData.get("service") ?? ""),
-      product: String(formData.get("product") ?? ""),
+      service: selectedService,
+      product: selectedProduct,
+      productQuantity: quantity,
+      productCost: numberToCurrency(totals.productCost),
+      productSale: numberToCurrency(totals.productSale),
+      serviceSale: numberToCurrency(totals.serviceSale),
+      partsTotal: numberToCurrency(totals.productSale),
+      servicesTotal: numberToCurrency(totals.serviceSale),
+      total: numberToCurrency(totals.total),
+      estimatedProfit: numberToCurrency(totals.profit),
+      estimatedMargin: pct(totals.margin),
       status: String(formData.get("status") ?? ""),
-      total: String(formData.get("total") ?? ""),
       notes: String(formData.get("notes") ?? ""),
     });
 
@@ -44,24 +79,19 @@ export function NewWorkOrderForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-xl font-black text-slate-950">Dados da OS</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Abra a ordem de serviço e acompanhe até o aviso de retirada.</p>
-        </div>
+        <h2 className="text-xl font-black text-slate-950">Dados da OS</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione produto e serviço para calcular total, lucro estimado e margem.</p>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{customerOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Veículo<select required name="vehicle" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{vehicleOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Serviço principal<select required name="service" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{demoServices.map((service) => <option key={service.id}>{service.name}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select name="product" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{demoProducts.map((product) => <option key={product.id}>{product.name}</option>)}</select></label>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...customers.map((c) => c.name), ...demoCustomers.map((c) => c.name)].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Veículo<select required name="vehicle" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...vehicles.map((v) => `${v.plate} - ${v.brand} ${v.model}`.trim()), ...demoVehicles.map((v) => `${v.plate} - ${v.model}`)].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Serviço<select value={selectedService} onChange={(event) => setSelectedService(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{serviceOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{["Aberta", "Em andamento", "Aguardando peça", "Pronta para retirada"].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Valor estimado<input required name="total" placeholder="Ex: R$ 238,00" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
         </div>
 
-        <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700">
-          Observações
-          <textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o problema, serviço solicitado ou orientação ao mecânico." />
-        </label>
+        <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o problema, serviço solicitado ou orientação ao mecânico." /></label>
 
         <div className="mt-6 flex items-center justify-end gap-3">
           {saved ? <span className="text-sm font-bold text-emerald-700">OS criada!</span> : null}
@@ -70,14 +100,14 @@ export function NewWorkOrderForm() {
       </div>
 
       <div className="rounded-3xl bg-slate-950 p-6 text-white shadow-sm">
-        <p className="text-sm font-bold text-blue-300">Fluxo comercial</p>
-        <h2 className="mt-2 text-2xl font-black">Cliente → Veículo → OS → Aviso</h2>
-        <p className="mt-4 text-sm leading-6 text-slate-300">Esse fluxo já grava a OS no navegador e abre a página de detalhe depois de salvar.</p>
+        <p className="text-sm font-bold text-blue-300">Resumo financeiro</p>
+        <h2 className="mt-2 text-2xl font-black">Total: {numberToCurrency(totals.total)}</h2>
         <div className="mt-6 grid gap-3 text-sm text-slate-200">
-          <div className="rounded-2xl bg-white/10 p-4">1. Selecione cliente e veículo</div>
-          <div className="rounded-2xl bg-white/10 p-4">2. Informe serviço, peça e total</div>
-          <div className="rounded-2xl bg-white/10 p-4">3. Salve a OS</div>
-          <div className="rounded-2xl bg-white/10 p-4">4. Avise o cliente no detalhe</div>
+          <div className="rounded-2xl bg-white/10 p-4">Peças: {numberToCurrency(totals.productSale)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">Serviços: {numberToCurrency(totals.serviceSale)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">Custo das peças: {numberToCurrency(totals.productCost)}</div>
+          <div className="rounded-2xl bg-emerald-500/20 p-4 font-black text-emerald-200">Lucro estimado: {numberToCurrency(totals.profit)}</div>
+          <div className="rounded-2xl bg-blue-500/20 p-4 font-black text-blue-100">Margem estimada: {pct(totals.margin)}</div>
         </div>
       </div>
     </form>
