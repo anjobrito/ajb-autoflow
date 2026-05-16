@@ -1,13 +1,17 @@
+import Link from "next/link";
+
 export function PageHeader({
   eyebrow,
   title,
   description,
   actionLabel,
+  actionHref,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   actionLabel?: string;
+  actionHref?: string;
 }) {
   return (
     <header className="rounded-3xl bg-white p-6 shadow-sm">
@@ -17,7 +21,11 @@ export function PageHeader({
           <h1 className="mt-1 text-3xl font-black">{title}</h1>
           <p className="mt-2 text-slate-600">{description}</p>
         </div>
-        {actionLabel ? (
+        {actionLabel && actionHref ? (
+          <Link href={actionHref} className="rounded-2xl bg-blue-600 px-5 py-3 text-center text-sm font-bold text-white hover:bg-blue-700">
+            {actionLabel}
+          </Link>
+        ) : actionLabel ? (
           <button className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">
             {actionLabel}
           </button>
