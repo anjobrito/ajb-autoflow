@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AIB AutoFlow",
+  title: "AJB AutoFlow",
   description: "Controle sua oficina ou lava-jato pelo celular.",
 };
 
