@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { getBusinessProfile } from "@/lib/business-profile";
 import { getCompany, listCustomers, listVehicles, saveReminder, StoredCustomer, StoredVehicle } from "@/lib/browser-store";
+import { carwashReminderTypes, partsReminderTypes, reminderChannels, workshopReminderTypes } from "@/lib/select-options";
 
 export default function NovoLembretePage() {
   const router = useRouter();
@@ -20,10 +21,10 @@ export default function NovoLembretePage() {
   }, []);
 
   const reminderTypes = profile.kind === "carwash"
-    ? ["Lavagem mensal", "Lavagem completa", "Higienização interna", "Detalhamento"]
+    ? carwashReminderTypes
     : profile.kind === "parts"
-      ? ["Reposição de filtros", "Compra recorrente de óleo", "Pastilhas de freio", "Reposição de estoque"]
-      : ["Troca de óleo", "Revisão preventiva", "Revisão de freios", "Troca de filtros"];
+      ? partsReminderTypes
+      : workshopReminderTypes;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +53,7 @@ export default function NovoLembretePage() {
             <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{customers.length ? customers.map((c) => <option key={c.id}>{c.name}</option>) : <option>Cliente demo</option>}</select></label>
             <label className="grid gap-2 text-sm font-bold text-slate-700">Placa<select name="plate" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{vehicles.length ? vehicles.map((v) => <option key={v.id}>{v.plate}</option>) : <option>ABC1D23</option>}</select></label>
             <label className="grid gap-2 text-sm font-bold text-slate-700">Vencimento<input name="dueDate" type="date" required className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-            <label className="grid gap-2 text-sm font-bold text-slate-700">Canal<select name="channel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option>E-mail</option><option>WhatsApp futuro</option><option>SMS futuro</option></select></label>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">Canal<select name="channel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{reminderChannels.map((item) => <option key={item}>{item}</option>)}</select></label>
           </div>
           <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700">Mensagem<textarea name="message" defaultValue={profile.customerReturnMessage} className="min-h-28 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <div className="mt-6 flex items-center justify-end gap-3">
