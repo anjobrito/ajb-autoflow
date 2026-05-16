@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Wrench className="h-6 w-6" />
             </div>
             <div>
-              <p className="font-black">AIB AutoFlow</p>
+              <p className="font-black">AJB AutoFlow</p>
               <p className="text-xs text-slate-300">Oficina Demo</p>
             </div>
           </Link>
