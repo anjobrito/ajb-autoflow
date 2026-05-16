@@ -4,29 +4,27 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { demoCustomers } from "@/lib/demo-data";
 import { listCustomers, saveVehicle, StoredCustomer } from "@/lib/browser-store";
+import { vehicleBrands } from "@/lib/select-options";
 
 export function NewVehicleForm() {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [customers, setCustomers] = useState<StoredCustomer[]>([]);
+  const [plate, setPlate] = useState("");
 
   useEffect(() => {
     setCustomers(listCustomers());
   }, []);
 
-  const customerOptions = [
-    ...customers.map((customer) => customer.name),
-    ...demoCustomers.map((customer) => customer.name),
-  ];
+  const customerOptions = [...customers.map((customer) => customer.name), ...demoCustomers.map((customer) => customer.name)];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const formData = new FormData(event.currentTarget);
 
     saveVehicle({
       customer: String(formData.get("customer") ?? ""),
-      plate: String(formData.get("plate") ?? ""),
+      plate: String(formData.get("plate") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
       brand: String(formData.get("brand") ?? ""),
       model: String(formData.get("model") ?? ""),
       year: String(formData.get("year") ?? ""),
@@ -46,11 +44,11 @@ export function NewVehicleForm() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{customerOptions.map((customer) => <option key={customer}>{customer}</option>)}</select></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Placa<input required name="plate" placeholder="Ex: ABC1D23" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Marca<input name="brand" placeholder="Ex: Honda" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Placa<input required name="plate" value={plate} onChange={(event) => setPlate(event.target.value.toUpperCase())} autoCapitalize="characters" autoComplete="off" placeholder="Ex: ABC1D23" className="uppercase rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Marca<select name="brand" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{vehicleBrands.map((brand) => <option key={brand}>{brand}</option>)}</select></label>
         <label className="grid gap-2 text-sm font-bold text-slate-700">Modelo<input required name="model" placeholder="Ex: Civic" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Ano<input name="year" placeholder="Ex: 2020" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-        <label className="grid gap-2 text-sm font-bold text-slate-700">Quilometragem<input name="mileage" placeholder="Ex: 82450" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Ano<input name="year" inputMode="numeric" placeholder="Ex: 2020" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+        <label className="grid gap-2 text-sm font-bold text-slate-700">Quilometragem<input name="mileage" inputMode="numeric" placeholder="Ex: 82450" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-3">
