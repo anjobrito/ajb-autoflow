@@ -135,6 +135,30 @@ export const workOrderStatuses = [
   "Entregue",
 ] as const;
 
+export const employeeRoles = [
+  "Mecânico",
+  "Eletricista automotivo",
+  "Lavador",
+  "Detailer",
+  "Atendente",
+  "Consultor técnico",
+  "Estoquista",
+  "Financeiro",
+  "Gerente",
+  "Outro",
+] as const;
+
+export const employeeEmploymentTypes = [
+  "CLT",
+  "PJ",
+  "Autônomo",
+  "Freelancer",
+  "Estágio",
+  "Temporário",
+] as const;
+
+export const employeeStatuses = ["Ativo", "Inativo", "Afastado"] as const;
+
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
