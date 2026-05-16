@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { getCompany, saveCompany, StoredCompany } from "@/lib/browser-store";
+import { businessTypes } from "@/lib/business-types";
 
 function Input({ label, name, value, onChange }: { label: string; name: keyof StoredCompany; value: string; onChange: (name: keyof StoredCompany, value: string) => void }) {
   return (
@@ -12,12 +13,29 @@ function Input({ label, name, value, onChange }: { label: string; name: keyof St
   );
 }
 
+function BusinessTypeSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="grid gap-2 text-sm font-bold text-slate-700">
+      Tipo de negócio
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">
+        {businessTypes.map((type) => (
+          <option key={type} value={type}>{type}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function CompanyClient() {
   const [company, setCompany] = useState<StoredCompany | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    setCompany(getCompany());
+    const loaded = getCompany();
+    setCompany({
+      ...loaded,
+      businessType: businessTypes.includes(loaded.businessType as typeof businessTypes[number]) ? loaded.businessType : "Oficina mecânica",
+    });
   }, []);
 
   function updateField(name: keyof StoredCompany, value: string) {
@@ -40,7 +58,7 @@ export function CompanyClient() {
     ["Nome fantasia", company.tradeName],
     ["Razão social", company.legalName],
     ["CNPJ", company.cnpj],
-    ["Segmento", company.businessType],
+    ["Tipo de negócio", company.businessType],
     ["Cidade/UF", `${company.city}/${company.state}`],
     ["Contato", `${company.phone} • ${company.email}`],
   ];
@@ -49,13 +67,13 @@ export function CompanyClient() {
     <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-950">Configuração da empresa</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Esses dados representam o cliente pagante: oficina, lava-jato, estética ou centro automotivo.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha um tipo fixo de negócio para o sistema adaptar módulos, lembretes e linguagem operacional.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Input label="Nome fantasia" name="tradeName" value={company.tradeName} onChange={updateField} />
           <Input label="Razão social" name="legalName" value={company.legalName} onChange={updateField} />
           <Input label="CNPJ" name="cnpj" value={company.cnpj} onChange={updateField} />
-          <Input label="Segmento" name="businessType" value={company.businessType} onChange={updateField} />
+          <BusinessTypeSelect value={company.businessType} onChange={(value) => updateField("businessType", value)} />
           <Input label="Cidade" name="city" value={company.city} onChange={updateField} />
           <Input label="Estado" name="state" value={company.state} onChange={updateField} />
           <Input label="Telefone" name="phone" value={company.phone} onChange={updateField} />
