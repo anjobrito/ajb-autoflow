@@ -10,6 +10,33 @@ export const brazilianStates = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ] as const;
 
+export const commonCities = [
+  "Araras",
+  "Limeira",
+  "Rio Claro",
+  "Piracicaba",
+  "Campinas",
+  "São Paulo",
+  "Ribeirão Preto",
+  "Sorocaba",
+  "Americana",
+  "Outra",
+] as const;
+
+export const vehicleBrands = [
+  "Chevrolet",
+  "Fiat",
+  "Ford",
+  "Honda",
+  "Hyundai",
+  "Jeep",
+  "Nissan",
+  "Renault",
+  "Toyota",
+  "Volkswagen",
+  "Outra",
+] as const;
+
 export const productCategories = [
   "Lubrificante",
   "Filtro",
@@ -50,20 +77,5 @@ export const workOrderStatuses = [
 ] as const;
 
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
-
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
-
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
-
-export const commonCities = [
-  "Araras",
-  "Limeira",
-  "Rio Claro",
-  "Piracicaba",
-  "Campinas",
-  "São Paulo",
-  "Ribeirão Preto",
-  "Sorocaba",
-  "Americana",
-  "Outra",
-] as const;
