@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { BadgeDollarSign, Bell, Building2, Car, ClipboardList, Gauge, LayoutDashboard, Package, Settings, Users, Wrench } from "lucide-react";
+import { BadgeDollarSign, Bell, Building2, Car, ClipboardList, Gauge, History, LayoutDashboard, Package, Settings, Users, Wrench } from "lucide-react";
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: Gauge },
   { label: "Pátio", href: "/patio", icon: LayoutDashboard },
   { label: "Clientes", href: "/clientes", icon: Users },
   { label: "Veículos", href: "/veiculos", icon: Car },
+  { label: "Histórico", href: "/historico-veiculo", icon: History },
   { label: "Fornecedores", href: "/fornecedores", icon: Building2 },
   { label: "Estoque", href: "/produtos", icon: Package },
   { label: "Serviços", href: "/servicos", icon: Wrench },
