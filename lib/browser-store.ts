@@ -16,7 +16,7 @@ export type StoredVehicle = {
   model: string;
   year: string;
   mileage: string;
-  powertrain: string;
+  powertrain?: string;
 };
 
 export type StoredSupplier = {
