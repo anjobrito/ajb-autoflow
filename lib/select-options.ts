@@ -25,6 +25,7 @@ export const commonCities = [
 
 export const vehicleBrands = [
   "Agrale",
+  "Aion",
   "Alfa Romeo",
   "Audi",
   "BMW",
@@ -52,18 +53,26 @@ export const vehicleBrands = [
   "Jeep",
   "Kia",
   "Land Rover",
+  "Leapmotor",
   "Lexus",
+  "Li Auto",
+  "Lucid",
+  "Lynk & Co",
   "Mazda",
   "Maserati",
   "Mercedes-Benz",
   "Mini",
   "Mitsubishi",
+  "NIO",
   "Nissan",
   "Peugeot",
+  "Polestar",
   "Porsche",
   "RAM",
   "Renault",
+  "Rivian",
   "Samsung Motors",
+  "Smart",
   "SsangYong",
   "Subaru",
   "Suzuki",
@@ -71,7 +80,20 @@ export const vehicleBrands = [
   "Toyota",
   "Volkswagen",
   "Volvo",
+  "XPeng",
+  "Zeekr",
   "Outra",
+] as const;
+
+export const vehiclePowertrains = [
+  "Flex",
+  "Gasolina",
+  "Etanol",
+  "Diesel",
+  "GNV",
+  "Híbrido",
+  "Híbrido plug-in",
+  "Elétrico",
 ] as const;
 
 export const productCategories = [
