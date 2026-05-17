@@ -25,7 +25,7 @@ export function EmployeesClient() {
             {employees.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">
-                  Nenhum funcionário cadastrado ainda.
+                  Nenhum funcionário cadastrado ainda. Cadastre a equipe para organizar atendimento, operação e futuras comissões.
                 </td>
               </tr>
             ) : employees.map((employee) => (
