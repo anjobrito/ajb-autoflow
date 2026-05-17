@@ -168,7 +168,8 @@ export const employeeStatuses = ["Ativo", "Inativo", "Afastado"] as const;
 
 export const commissionTargetTypes = ["Serviço", "Produto/peça", "Lavagem"] as const;
 export const commissionValueTypes = ["Percentual", "Valor fixo"] as const;
-export const commissionStatuses = ["Ativa", "Inativa"] as const;
+export const commissionStatuses = ["Pendente", "Paga", "Cancelada"] as const;
+export const employeeCommissionTypes = ["Percentual", "Valor fixo", "Sem comissão"] as const;
 
 export const financialEntryTypes = ["Pagar", "Receber"] as const;
 export const financialEntryCategories = [
