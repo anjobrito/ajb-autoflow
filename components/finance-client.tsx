@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BadgeDollarSign, ClipboardList, Percent, TrendingUp } from "lucide-react";
+import { BadgeDollarSign, ClipboardList, Percent, Receipt, TrendingUp, Wallet } from "lucide-react";
 import { getFinancialSummary, listWorkOrders, numberToCurrency, StoredWorkOrder } from "@/lib/browser-store";
 
 type Summary = {
@@ -47,6 +48,19 @@ export function FinanceClient() {
             </div>
           );
         })}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link href="/contas-pagar" className="rounded-3xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <Wallet className="h-8 w-8 text-blue-700" />
+          <h2 className="mt-4 text-xl font-black">Contas a pagar</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Controle despesas, fornecedores, boletos, comissões e compromissos financeiros em localStorage.</p>
+        </Link>
+        <Link href="/contas-receber" className="rounded-3xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <Receipt className="h-8 w-8 text-blue-700" />
+          <h2 className="mt-4 text-xl font-black">Contas a receber</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Acompanhe recebíveis de OS, lavagens, vendas de peças, contratos e entradas previstas.</p>
+        </Link>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">

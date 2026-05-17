@@ -168,11 +168,10 @@ export const employeeStatuses = ["Ativo", "Inativo", "Afastado"] as const;
 
 export const commissionTargetTypes = ["Serviço", "Produto/peça", "Lavagem"] as const;
 export const commissionValueTypes = ["Percentual", "Valor fixo"] as const;
-export const commissionStatuses = ["Pendente", "Paga", "Cancelada"] as const;
-export const employeeCommissionTypes = ["Percentual", "Valor fixo", "Sem comissão"] as const;
+export const commissionStatuses = ["Ativa", "Inativa"] as const;
 
 export const financialEntryTypes = ["Pagar", "Receber"] as const;
-export const financialEntryCategories = [
+export const accountsPayableCategories = [
   "Peças e produtos",
   "Serviços terceirizados",
   "Aluguel",
@@ -182,11 +181,26 @@ export const financialEntryCategories = [
   "Energia elétrica",
   "Água",
   "Internet e telefone",
+  "Manutenção interna",
+  "Marketing",
+  "Outro",
+] as const;
+export const accountsReceivableCategories = [
+  "Ordem de serviço",
   "Venda de serviço",
   "Venda de peça/produto",
   "Lavagem",
+  "Estética automotiva",
+  "Contrato mensal",
+  "Reembolso",
   "Outro",
 ] as const;
+export const financialEntryCategories = [
+  ...accountsPayableCategories,
+  ...accountsReceivableCategories,
+] as const;
+export const payableStatuses = ["Pendente", "Pago", "Vencido", "Cancelado"] as const;
+export const receivableStatuses = ["Pendente", "Recebido", "Vencido", "Cancelado"] as const;
 export const financialEntryStatuses = ["Pendente", "Pago", "Recebido", "Vencido", "Cancelado"] as const;
 export const paymentMethods = ["Dinheiro", "Pix", "Cartão de débito", "Cartão de crédito", "Boleto", "Transferência", "Cheque", "Outro"] as const;
 
@@ -214,3 +228,10 @@ export const workshopReminderTypes = [
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
+
+
+export const employeeCommissionTypes = [
+  "Sem comissão",
+  "Percentual",
+  "Valor fixo",
+] as const;

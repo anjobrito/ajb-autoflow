@@ -143,18 +143,33 @@ export type StoredCommission = {
   updatedAt?: string;
 };
 
+export type FinancialEntryType = "Pagar" | "Receber";
+export type FinancialEntryStatus = "Pendente" | "Pago" | "Recebido" | "Vencido" | "Cancelado";
+
 export type StoredFinancialEntry = {
   id: string;
-  type: "Pagar" | "Receber";
+  type: FinancialEntryType;
   description: string;
   category: string;
   amount: string;
   dueDate: string;
-  status: "Pendente" | "Pago" | "Recebido" | "Vencido" | "Cancelado";
+  status: FinancialEntryStatus;
   paymentMethod: string;
   notes: string;
   createdAt: string;
   updatedAt?: string;
+  personName?: string;
+  reference?: string;
+  settledAt?: string;
+};
+
+export type FinancialEntrySummary = {
+  total: number;
+  pending: number;
+  settled: number;
+  overdue: number;
+  cancelled: number;
+  count: number;
 };
 
 export type StoredCompany = {
@@ -428,15 +443,105 @@ export function createCommissionFromWorkOrder(workOrderId: string, targetType: S
 }
 
 export function listFinancialEntries() { return readList<StoredFinancialEntry>(financialEntriesKey); }
+export function listAccountsPayable() { return listFinancialEntries().filter((entry) => entry.type === "Pagar"); }
+export function listAccountsReceivable() { return listFinancialEntries().filter((entry) => entry.type === "Receber"); }
+
+function todayDateOnly() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function parseDateOnly(value: string) {
+  if (!value) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function isEntryOverdue(entry: StoredFinancialEntry) {
+  if (entry.status !== "Pendente") return false;
+  const dueDate = parseDateOnly(entry.dueDate);
+  if (!dueDate) return false;
+  return dueDate < todayDateOnly();
+}
+
 export function saveFinancialEntry(entry: Omit<StoredFinancialEntry, "id" | "createdAt" | "updatedAt">) {
   const record: StoredFinancialEntry = { ...entry, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   writeList(financialEntriesKey, [record, ...listFinancialEntries()]);
   return record;
 }
+
+export function updateFinancialEntry(id: string, entry: Omit<StoredFinancialEntry, "id" | "createdAt" | "updatedAt">) {
+  let updatedRecord: StoredFinancialEntry | undefined;
+  const updated = listFinancialEntries().map((current) => {
+    if (current.id !== id) return current;
+
+    updatedRecord = {
+      ...current,
+      ...entry,
+      updatedAt: new Date().toISOString(),
+      settledAt: entry.status === "Pago" || entry.status === "Recebido"
+        ? entry.settledAt || current.settledAt || new Date().toISOString().slice(0, 10)
+        : entry.settledAt,
+    };
+
+    return updatedRecord;
+  });
+
+  writeList(financialEntriesKey, updated);
+  return updatedRecord;
+}
+
+export function deleteFinancialEntry(id: string) {
+  const updated = listFinancialEntries().filter((entry) => entry.id !== id);
+  writeList(financialEntriesKey, updated);
+  return updated;
+}
+
 export function updateFinancialEntryStatus(id: string, status: StoredFinancialEntry["status"]) {
-  const updated = listFinancialEntries().map((entry) => entry.id === id ? { ...entry, status, updatedAt: new Date().toISOString() } : entry);
+  const updated = listFinancialEntries().map((entry) => {
+    if (entry.id !== id) return entry;
+
+    const settledAt = status === "Pago" || status === "Recebido"
+      ? new Date().toISOString().slice(0, 10)
+      : entry.settledAt;
+
+    return { ...entry, status, settledAt, updatedAt: new Date().toISOString() };
+  });
+
   writeList(financialEntriesKey, updated);
   return updated.find((entry) => entry.id === id);
+}
+
+export function getFinancialEntryDisplayStatus(entry: StoredFinancialEntry): StoredFinancialEntry["status"] {
+  if (isEntryOverdue(entry)) return "Vencido";
+  return entry.status;
+}
+
+export function getFinancialEntriesByType(type: StoredFinancialEntry["type"]) {
+  return listFinancialEntries().filter((entry) => entry.type === type);
+}
+
+export function getFinancialEntriesSummary(type: StoredFinancialEntry["type"]): FinancialEntrySummary {
+  const entries = getFinancialEntriesByType(type);
+
+  return entries.reduce<FinancialEntrySummary>((summary, entry) => {
+    const value = currencyToNumber(entry.amount);
+    const displayStatus = getFinancialEntryDisplayStatus(entry);
+
+    if (displayStatus === "Cancelado") {
+      summary.cancelled += value;
+    } else {
+      summary.total += value;
+    }
+
+    if (displayStatus === "Pendente") summary.pending += value;
+    if (displayStatus === "Vencido") summary.overdue += value;
+    if (displayStatus === "Pago" || displayStatus === "Recebido") summary.settled += value;
+
+    summary.count += 1;
+    return summary;
+  }, { total: 0, pending: 0, settled: 0, overdue: 0, cancelled: 0, count: 0 });
 }
 
 export function currencyToNumber(value: string) {
