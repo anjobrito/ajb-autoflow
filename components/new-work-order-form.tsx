@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { demoCustomers, demoProducts, demoServices, demoVehicles } from "@/lib/demo-data";
-import { currencyToNumber, listCustomers, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
+import { currencyToNumber, listCustomers, listEmployees, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredEmployee, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
 import { newWorkOrderStatuses } from "@/lib/select-options";
 
 function pct(value: number) {
@@ -17,8 +17,10 @@ export function NewWorkOrderForm() {
   const [vehicles, setVehicles] = useState<StoredVehicle[]>([]);
   const [products, setProducts] = useState<StoredProduct[]>([]);
   const [services, setServices] = useState<StoredService[]>([]);
+  const [employees, setEmployees] = useState<StoredEmployee[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedService, setSelectedService] = useState("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [quantity, setQuantity] = useState("1");
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export function NewWorkOrderForm() {
     setVehicles(listVehicles());
     setProducts(loadedProducts);
     setServices(loadedServices);
+    setEmployees(listEmployees());
     setSelectedProduct(loadedProducts[0]?.name ?? demoProducts[0]?.name ?? "");
     setSelectedService(loadedServices[0]?.name ?? demoServices[0]?.name ?? "");
   }, []);
@@ -39,6 +42,7 @@ export function NewWorkOrderForm() {
   const serviceOptions = [...services, ...demoServices];
   const product = productOptions.find((item) => item.name === selectedProduct);
   const service = serviceOptions.find((item) => item.name === selectedService);
+  const responsibleEmployee = employees.find((employee) => employee.id === selectedEmployeeId);
   const qty = Math.max(0, Number(quantity || 0));
 
   const totals = useMemo(() => {
@@ -70,6 +74,8 @@ export function NewWorkOrderForm() {
       estimatedProfit: numberToCurrency(totals.profit),
       estimatedMargin: pct(totals.margin),
       status: String(formData.get("status") ?? ""),
+      responsibleEmployeeId: responsibleEmployee?.id,
+      responsibleEmployeeName: responsibleEmployee?.name,
       notes: String(formData.get("notes") ?? ""),
     });
 
@@ -90,6 +96,7 @@ export function NewWorkOrderForm() {
           <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{newWorkOrderStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Responsável<select value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option value="">Sem responsável definido</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>
         </div>
 
         <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o problema, serviço solicitado ou orientação ao mecânico." /></label>
@@ -107,6 +114,7 @@ export function NewWorkOrderForm() {
           <div className="rounded-2xl bg-white/10 p-4">Peças: {numberToCurrency(totals.productSale)}</div>
           <div className="rounded-2xl bg-white/10 p-4">Serviços: {numberToCurrency(totals.serviceSale)}</div>
           <div className="rounded-2xl bg-white/10 p-4">Custo das peças: {numberToCurrency(totals.productCost)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">Responsável: {responsibleEmployee?.name ?? "Sem responsável definido"}</div>
           <div className="rounded-2xl bg-emerald-500/20 p-4 font-black text-emerald-200">Lucro estimado: {numberToCurrency(totals.profit)}</div>
           <div className="rounded-2xl bg-blue-500/20 p-4 font-black text-blue-100">Margem estimada: {pct(totals.margin)}</div>
         </div>
