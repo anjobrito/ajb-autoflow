@@ -17,6 +17,7 @@ type DetailOrder = {
   product?: string;
   status: string;
   total: string;
+  responsibleEmployeeName?: string;
   notes?: string;
   startedAt?: string;
   finishedAt?: string;
@@ -70,6 +71,7 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
         product: storedOrder.product,
         status: storedOrder.status,
         total: storedOrder.total,
+        responsibleEmployeeName: storedOrder.responsibleEmployeeName,
         notes: storedOrder.notes,
         startedAt: storedOrder.startedAt,
         finishedAt: storedOrder.finishedAt,
@@ -78,7 +80,7 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
       };
     }
     const demo = demoWorkOrders.find((item) => item.id === id) ?? demoWorkOrders[2];
-    return { ...demo, powertrain: "Não informado" };
+    return { ...demo, powertrain: "Não informado", responsibleEmployeeName: "Não definido" };
   }, [id, storedOrder, vehicles]);
 
   const details = [
@@ -88,6 +90,7 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
     ["Propulsão", order.powertrain ?? "Não informado"],
     ["Serviço", order.service],
     ["Produto", order.product ?? "Não informado"],
+    ["Responsável", order.responsibleEmployeeName ?? "Não definido"],
     ["Status", order.status],
     ["Total", order.total],
     ["Lucro estimado", order.estimatedProfit ?? "Não calculado"],
@@ -97,6 +100,7 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
 
   const timeline = [
     ["OS aberta pelo atendente", "Registro inicial do atendimento."],
+    ["Responsável definido", order.responsibleEmployeeName ? `${order.responsibleEmployeeName} vinculado à OS.` : "Nenhum responsável definido para esta OS."],
     ["Vistoria de entrada", inspection ? `Checklist salvo em ${formatDateTime(inspection.createdAt)}` : "Checklist ainda não registrado."],
     ["Serviço iniciado", order.startedAt ? `Iniciado em ${formatDateTime(order.startedAt)}` : "Aguardando clique em Iniciar no pátio mobile."],
     ["Execução em andamento", `Duração atual/total: ${formatDuration(order.startedAt, order.finishedAt)}`],

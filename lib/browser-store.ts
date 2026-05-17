@@ -77,6 +77,8 @@ export type StoredWorkOrder = {
   estimatedProfit: string;
   estimatedMargin: string;
   status: string;
+  responsibleEmployeeId?: string;
+  responsibleEmployeeName?: string;
   notes: string;
   startedAt?: string;
   finishedAt?: string;
