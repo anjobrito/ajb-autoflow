@@ -6,10 +6,10 @@ export default function ComissoesPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Comissões"
+        eyebrow="Comissões preparatórias"
         title="Comissões"
-        description="Configure regras de comissão por funcionário, serviço, peça/produto e lavagem sem alterar o financeiro geral."
-        actionLabel="Nova comissão"
+        description="Prepare regras comerciais por funcionário, serviço, peça/produto e lavagem para evoluir remuneração variável sem alterar o financeiro geral do MVP."
+        actionLabel="Cadastrar primeira comissão"
         actionHref="/comissoes/nova"
       />
       <CommissionsClient />
