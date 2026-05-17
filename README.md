@@ -4,13 +4,13 @@ SaaS multiempresa para gestão de oficinas, lava-jatos, estética automotiva e s
 
 ## Objetivo
 
-Permitir que pequenas empresas automotivas controlem clientes, veículos, estoque, serviços e ordens de serviço em uma plataforma online, responsiva e preparada para uso no celular.
+Permitir que pequenas empresas automotivas controlem clientes, veículos, estoque, serviços, ordens de serviço, comissões e contas financeiras em uma plataforma online, responsiva e preparada para uso no celular.
 
 ## Proposta comercial
 
 **Controle sua oficina ou lava-jato pelo celular.**
 
-O AJB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, clientes, veículos, peças, serviços e avisos ao cliente final quando o veículo estiver pronto para retirada.
+O AJB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, clientes, veículos, peças, serviços, contas a pagar/receber e avisos ao cliente final quando o veículo estiver pronto para retirada.
 
 ## MVP inicial
 
@@ -20,11 +20,16 @@ O AJB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, cli
 - Usuários por empresa
 - Clientes da empresa
 - Veículos dos clientes
+- Fornecedores
+- Funcionários/responsáveis
 - Produtos, peças e insumos
 - Serviços prestados
 - Ordens de serviço
 - Status de atendimento
 - Controle básico de estoque
+- Checklist/inspeção de entrada
+- Comissões por serviço, peça, lavagem ou OS
+- Contas a pagar e receber
 - Lembretes e notificações por e-mail
 - Controle de assinatura/licença
 
@@ -43,7 +48,9 @@ O AJB AutoFlow ajuda pequenos negócios automotivos a organizar atendimento, cli
 ```bash
 npm install
 cp .env.example .env
-npx prisma generate
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:seed
 npm run dev
 ```
 
@@ -52,15 +59,26 @@ npm run dev
 Configure a variável `DATABASE_URL` no arquivo `.env`.
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/ajb_autoflow?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ajb_autoflow?schema=public"
 ```
 
 Depois execute:
 
 ```bash
-npx prisma migrate dev
+npm run prisma:migrate
+npm run prisma:seed
+```
+
+Para inspecionar os dados:
+
+```bash
+npm run prisma:studio
 ```
 
 ## Observação de produto
 
-O projeto nasce com arquitetura multiempresa. Cada oficina, lava-jato ou empresa automotiva possui seus próprios usuários, clientes, veículos, estoque e ordens de serviço isolados por `companyId`.
+O projeto nasce com arquitetura multiempresa. Cada oficina, lava-jato ou empresa automotiva possui seus próprios usuários, clientes, veículos, estoque, ordens de serviço, comissões e contas financeiras isolados por `companyId`.
+
+## Documentação da migração
+
+Consulte `docs/AJB-V1-04-PRISMA-POSTGRESQL.md` para ver a estratégia de migração incremental do MVP em `localStorage` para Prisma + PostgreSQL.
