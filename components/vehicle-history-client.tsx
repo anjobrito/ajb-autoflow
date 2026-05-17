@@ -69,6 +69,7 @@ export function VehicleHistoryClient() {
         powertrain: vehicle?.powertrain || "Não informado",
         service: order.service,
         product: order.product,
+        responsibleEmployeeName: order.responsibleEmployeeName ?? "Não definido",
         status: order.status,
         total: order.total,
         source: "Cadastro",
@@ -84,6 +85,7 @@ export function VehicleHistoryClient() {
       powertrain: "Não informado",
       service: order.service,
       product: "Produto demo",
+      responsibleEmployeeName: "Não definido",
       status: order.status,
       total: order.total,
       source: "Demo",
@@ -150,10 +152,10 @@ export function VehicleHistoryClient() {
           <p className="mt-2 text-sm text-slate-600">Digite uma placa para visualizar atendimentos anteriores.</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-left text-sm">
+          <table className="w-full min-w-[1180px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                {['OS', 'Cliente', 'Veículo', 'Propulsão', 'Serviço', 'Produto', 'Status', 'Total', 'Detalhe'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
+                {['OS', 'Cliente', 'Veículo', 'Propulsão', 'Serviço', 'Produto', 'Responsável', 'Status', 'Total', 'Detalhe'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -165,12 +167,13 @@ export function VehicleHistoryClient() {
                   <td className="px-5 py-4 text-slate-700">{item.powertrain}</td>
                   <td className="px-5 py-4 text-slate-700">{item.service}</td>
                   <td className="px-5 py-4 text-slate-700">{item.product}</td>
+                  <td className="px-5 py-4 text-slate-700">{item.responsibleEmployeeName}</td>
                   <td className="px-5 py-4"><span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">{item.status}</span></td>
                   <td className="px-5 py-4 font-black text-slate-700">{item.total}</td>
                   <td className="px-5 py-4"><Link href={`/ordens-servico/${item.id}`} className="font-black text-blue-700">Abrir</Link></td>
                 </tr>
               )) : (
-                <tr><td colSpan={9} className="px-5 py-10 text-center text-slate-500">Digite uma placa para consultar o histórico.</td></tr>
+                <tr><td colSpan={10} className="px-5 py-10 text-center text-slate-500">Digite uma placa para consultar o histórico.</td></tr>
               )}
             </tbody>
           </table>
