@@ -22,6 +22,21 @@ enum UserRole {
   ATTENDANT
 }
 
+enum EmploymentType {
+  CLT
+  PJ
+  FREELANCER
+  PARTNER
+  OTHER
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  VACATION
+  DISMISSED
+}
+
 enum WorkOrderStatus {
   OPEN
   IN_PROGRESS
@@ -37,12 +52,50 @@ enum ReminderChannel {
   WHATSAPP
 }
 
+enum ReminderStatus {
+  PENDING
+  SENT
+  CANCELED
+}
+
 enum SubscriptionStatus {
   TRIAL
   ACTIVE
   PAST_DUE
   CANCELED
   BLOCKED
+}
+
+enum CommissionTargetType {
+  SERVICE
+  PART
+  WASH
+  WORK_ORDER
+  OTHER
+}
+
+enum CommissionValueType {
+  FIXED
+  PERCENTAGE
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum FinancialEntryType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum FinancialEntryStatus {
+  PENDING
+  PAID
+  RECEIVED
+  OVERDUE
+  CANCELED
 }
 
 model Company {
@@ -62,11 +115,18 @@ model Company {
   users              User[]
   customers          Customer[]
   vehicles           Vehicle[]
+  suppliers          Supplier[]
+  employees          Employee[]
   products           Product[]
   services           Service[]
   workOrders         WorkOrder[]
+  inspections        Inspection[]
   reminders          MaintenanceReminder[]
+  commissions        Commission[]
+  financialEntries   FinancialEntry[]
   subscription       Subscription?
+
+  @@index([subscriptionStatus])
 }
 
 model User {
@@ -80,12 +140,58 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company   Company  @relation(fields: [companyId], references: [id])
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
 }
 
 model Customer {
+  id         String   @id @default(cuid())
+  companyId  String
+  name       String
+  document   String?
+  email      String?
+  phone      String?
+  city       String?
+  state      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicles   Vehicle[]
+  workOrders WorkOrder[]
+  reminders  MaintenanceReminder[]
+
+  @@index([companyId])
+  @@index([companyId, document])
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  companyId   String
+  customerId  String
+  plate       String
+  brand       String?
+  model       String
+  year        Int?
+  color       String?
+  mileage     Int?
+  powertrain  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  workOrders  WorkOrder[]
+  inspections Inspection[]
+  reminders   MaintenanceReminder[]
+
+  @@index([companyId])
+  @@index([customerId])
+  @@unique([companyId, plate])
+}
+
+model Supplier {
   id        String   @id @default(cuid())
   companyId String
   name      String
@@ -97,94 +203,163 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company   Company  @relation(fields: [companyId], references: [id])
-  vehicles  Vehicle[]
-  workOrders WorkOrder[]
-  reminders MaintenanceReminder[]
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products  Product[]
 
   @@index([companyId])
+  @@index([companyId, document])
 }
 
-model Vehicle {
-  id         String   @id @default(cuid())
-  companyId  String
-  customerId String
-  plate      String
-  brand      String?
-  model      String
-  year       Int?
-  color      String?
-  mileage    Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model Employee {
+  id             String         @id @default(cuid())
+  companyId      String
+  name           String
+  cpf            String?
+  phone          String?
+  email          String?
+  role           String
+  employmentType EmploymentType @default(CLT)
+  status         EmployeeStatus @default(ACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  company    Company  @relation(fields: [companyId], references: [id])
-  customer   Customer @relation(fields: [customerId], references: [id])
-  workOrders WorkOrder[]
-  reminders  MaintenanceReminder[]
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrders     WorkOrder[]
+  commissions    Commission[]
 
   @@index([companyId])
-  @@index([customerId])
+  @@index([companyId, status])
+  @@index([companyId, cpf])
 }
 
 model Product {
-  id           String   @id @default(cuid())
-  companyId    String
-  sku          String?
-  barcode      String?
-  name         String
-  category     String?
-  brand        String?
-  costPrice    Decimal  @default(0)
-  salePrice    Decimal  @default(0)
-  currentStock Decimal  @default(0)
-  minStock     Decimal  @default(0)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  companyId      String
+  supplierId     String?
+  sku            String?
+  barcode        String?
+  name           String
+  category       String?
+  brand          String?
+  costPrice      Decimal  @default(0) @db.Decimal(12, 2)
+  salePrice      Decimal  @default(0) @db.Decimal(12, 2)
+  currentStock   Decimal  @default(0) @db.Decimal(12, 3)
+  minStock       Decimal  @default(0) @db.Decimal(12, 3)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  company      Company  @relation(fields: [companyId], references: [id])
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  supplier       Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  workOrderItems WorkOrderItem[]
 
   @@index([companyId])
+  @@index([supplierId])
+  @@index([companyId, active])
 }
 
 model Service {
-  id          String   @id @default(cuid())
-  companyId   String
-  name        String
-  description String?
-  price       Decimal  @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  companyId      String
+  name           String
+  category       String?
+  description    String?
+  duration       String?
+  price          Decimal  @default(0) @db.Decimal(12, 2)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  company     Company  @relation(fields: [companyId], references: [id])
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrderItems WorkOrderItem[]
 
   @@index([companyId])
+  @@index([companyId, active])
 }
 
 model WorkOrder {
-  id          String          @id @default(cuid())
-  companyId   String
-  customerId  String
-  vehicleId   String
-  code        String
-  status      WorkOrderStatus @default(OPEN)
-  description String?
-  totalParts  Decimal         @default(0)
-  totalServices Decimal       @default(0)
-  totalAmount Decimal         @default(0)
-  openedAt    DateTime        @default(now())
-  closedAt    DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id                    String          @id @default(cuid())
+  companyId             String
+  customerId            String
+  vehicleId             String
+  responsibleEmployeeId String?
+  code                  String
+  status                WorkOrderStatus @default(OPEN)
+  description           String?
+  notes                 String?
+  totalParts            Decimal         @default(0) @db.Decimal(12, 2)
+  totalServices         Decimal         @default(0) @db.Decimal(12, 2)
+  totalAmount           Decimal         @default(0) @db.Decimal(12, 2)
+  estimatedProfit       Decimal         @default(0) @db.Decimal(12, 2)
+  estimatedMargin       Decimal         @default(0) @db.Decimal(8, 2)
+  openedAt              DateTime        @default(now())
+  startedAt             DateTime?
+  closedAt              DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
-  company     Company         @relation(fields: [companyId], references: [id])
-  customer    Customer        @relation(fields: [customerId], references: [id])
-  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+  company               Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer              Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle               Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  responsibleEmployee   Employee?       @relation(fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
+  items                 WorkOrderItem[]
+  inspections           Inspection[]
+  commissions           Commission[]
+  financialEntries      FinancialEntry[]
 
   @@index([companyId])
   @@index([customerId])
+  @@index([vehicleId])
+  @@index([responsibleEmployeeId])
+  @@unique([companyId, code])
+}
+
+model WorkOrderItem {
+  id          String   @id @default(cuid())
+  workOrderId String
+  productId   String?
+  serviceId   String?
+  description String
+  quantity    Decimal  @default(1) @db.Decimal(12, 3)
+  unitCost    Decimal  @default(0) @db.Decimal(12, 2)
+  unitPrice   Decimal  @default(0) @db.Decimal(12, 2)
+  totalCost   Decimal  @default(0) @db.Decimal(12, 2)
+  totalPrice  Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  service     Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId])
+  @@index([productId])
+  @@index([serviceId])
+}
+
+model Inspection {
+  id               String   @id @default(cuid())
+  companyId        String
+  workOrderId      String
+  vehicleId        String
+  plate            String
+  mileage          Int?
+  fuelLevel        String
+  hasDocuments     Boolean  @default(false)
+  hasSpareTire     Boolean  @default(false)
+  hasJack          Boolean  @default(false)
+  hasPersonalItems Boolean  @default(false)
+  personalItems    String?
+  damages          String[] @default([])
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrder        WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  vehicle          Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  @@index([companyId])
+  @@index([workOrderId])
   @@index([vehicleId])
 }
 
@@ -198,27 +373,81 @@ model MaintenanceReminder {
   dueDate     DateTime?
   dueMileage  Int?
   channel     ReminderChannel @default(EMAIL)
+  status      ReminderStatus  @default(PENDING)
   sentAt      DateTime?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  company     Company         @relation(fields: [companyId], references: [id])
-  customer    Customer        @relation(fields: [customerId], references: [id])
-  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
 
   @@index([companyId])
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model Commission {
+  id          String               @id @default(cuid())
+  companyId   String
+  employeeId  String?
+  workOrderId String?
+  targetType  CommissionTargetType
+  targetName  String
+  valueType   CommissionValueType
+  value       Decimal              @default(0) @db.Decimal(12, 2)
+  status      CommissionStatus     @default(PENDING)
+  notes       String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  company     Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee    Employee?            @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  workOrder   WorkOrder?           @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([employeeId])
+  @@index([workOrderId])
+  @@index([status])
+}
+
+model FinancialEntry {
+  id            String               @id @default(cuid())
+  companyId     String
+  workOrderId   String?
+  type          FinancialEntryType
+  description   String
+  category      String
+  amount        Decimal              @default(0) @db.Decimal(12, 2)
+  dueDate       DateTime
+  status        FinancialEntryStatus @default(PENDING)
+  paymentMethod String?
+  notes         String?
+  paidAt        DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  company       Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrder     WorkOrder?           @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([workOrderId])
+  @@index([type])
+  @@index([status])
+  @@index([dueDate])
 }
 
 model Subscription {
-  id        String             @id @default(cuid())
-  companyId String             @unique
-  plan      String             @default("START")
-  status    SubscriptionStatus @default(TRIAL)
-  priceCents Int               @default(4990)
-  startedAt DateTime           @default(now())
-  expiresAt DateTime?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  id         String             @id @default(cuid())
+  companyId  String             @unique
+  plan       String             @default("START")
+  status     SubscriptionStatus @default(TRIAL)
+  priceCents Int                @default(4990)
+  startedAt  DateTime           @default(now())
+  expiresAt  DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
 
-  company   Company            @relation(fields: [companyId], references: [id])
+  company    Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
