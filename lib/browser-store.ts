@@ -38,6 +38,12 @@ export type StoredEmployee = {
   role: string;
   employmentType: string;
   status: string;
+  serviceCommissionType?: string;
+  serviceCommissionValue?: string;
+  partCommissionType?: string;
+  partCommissionValue?: string;
+  washCommissionType?: string;
+  washCommissionValue?: string;
 };
 
 export type StoredProduct = {
@@ -112,17 +118,26 @@ export type StoredReminder = {
   createdAt: string;
 };
 
+export type StoredCommissionStatus = "Pendente" | "Paga" | "Cancelada";
+export type StoredCommissionTargetType = "Serviço" | "Produto/peça" | "Lavagem";
+export type StoredCommissionValueType = "Percentual" | "Valor fixo";
+
 export type StoredCommission = {
   id: string;
   employeeId?: string;
   employeeName: string;
-  targetType: string;
+  targetType: StoredCommissionTargetType | string;
   targetName: string;
-  valueType: string;
+  valueType: StoredCommissionValueType | string;
   value: string;
-  status: string;
+  baseAmount?: string;
+  calculatedAmount?: string;
+  status: StoredCommissionStatus | string;
+  referenceDate?: string;
+  paidAt?: string;
   notes: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export type StoredFinancialEntry = {
@@ -291,10 +306,21 @@ export function updateReminderStatus(id: string, status: StoredReminder["status"
 }
 
 export function listCommissions() { return readList<StoredCommission>(commissionsKey); }
-export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt">) {
-  const record: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt" | "updatedAt" | "paidAt">) {
+  const record: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   writeList(commissionsKey, [record, ...listCommissions()]);
   return record;
+}
+export function updateCommissionStatus(id: string, status: StoredCommissionStatus) {
+  const timestamp = new Date().toISOString();
+  const updated = listCommissions().map((commission) => commission.id === id ? { ...commission, status, paidAt: status === "Paga" ? timestamp : undefined, updatedAt: timestamp } : commission);
+  writeList(commissionsKey, updated);
+  return updated.find((commission) => commission.id === id);
+}
+export function deleteCommission(id: string) {
+  const updated = listCommissions().filter((commission) => commission.id !== id);
+  writeList(commissionsKey, updated);
+  return updated;
 }
 
 export function listFinancialEntries() { return readList<StoredFinancialEntry>(financialEntriesKey); }
@@ -320,6 +346,13 @@ export function calculateMargin(costPrice: string, salePrice: string) {
   const profit = sale - cost;
   const margin = sale > 0 ? (profit / sale) * 100 : 0;
   return { profit, margin };
+}
+export function calculateCommissionAmount(baseAmount: string, valueType: string, value: string) {
+  const base = currencyToNumber(baseAmount);
+  const commissionValue = valueType === "Percentual" ? Number(value.replace("%", "").replace(",", ".").trim()) : currencyToNumber(value);
+  if (!Number.isFinite(commissionValue) || commissionValue <= 0) return 0;
+  if (valueType === "Percentual") return base * (commissionValue / 100);
+  return commissionValue;
 }
 
 export function getDashboardStats() {
