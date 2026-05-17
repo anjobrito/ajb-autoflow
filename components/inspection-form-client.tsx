@@ -3,19 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { findInspectionByWorkOrderId, findWorkOrderById, saveInspection, StoredInspection, StoredWorkOrder } from "@/lib/browser-store";
-
-const damageOptions = [
-  "Para-choque dianteiro",
-  "Para-choque traseiro",
-  "Capô",
-  "Teto",
-  "Porta esquerda",
-  "Porta direita",
-  "Lateral esquerda",
-  "Lateral direita",
-  "Rodas",
-  "Vidros",
-];
+import { fuelLevels, inspectionDamageAreas } from "@/lib/select-options";
 
 export function InspectionFormClient({ workOrderId }: { workOrderId: string }) {
   const router = useRouter();
@@ -68,7 +56,7 @@ export function InspectionFormClient({ workOrderId }: { workOrderId: string }) {
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <label className="grid gap-2 text-sm font-bold text-slate-700">Placa<input name="plate" defaultValue={plate} className="uppercase rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">KM<input name="mileage" inputMode="numeric" defaultValue={inspection?.mileage ?? ""} placeholder="Ex: 82450" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Combustível<select name="fuelLevel" defaultValue={inspection?.fuelLevel ?? "1/2"} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option>Reserva</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Cheio</option></select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Combustível<select name="fuelLevel" defaultValue={inspection?.fuelLevel ?? "1/2"} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{fuelLevels.map((level) => <option key={level}>{level}</option>)}</select></label>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -86,7 +74,7 @@ export function InspectionFormClient({ workOrderId }: { workOrderId: string }) {
           <p className="text-sm font-black text-slate-700">Avarias visuais</p>
           <p className="mt-1 text-sm text-slate-500">Toque nas áreas com risco, amassado ou observação.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {damageOptions.map((item) => {
+            {inspectionDamageAreas.map((item) => {
               const active = damages.includes(item);
               return (
                 <button key={item} type="button" onClick={() => toggleDamage(item)} className={`rounded-2xl border p-4 text-left text-sm font-black transition ${active ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"}`}>
