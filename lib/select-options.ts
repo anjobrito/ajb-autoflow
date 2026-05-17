@@ -213,3 +213,16 @@ export const workshopReminderTypes = [
 export const reminderChannels = ["E-mail", "WhatsApp futuro", "SMS futuro"] as const;
 export const reminderStatuses = ["Pendente", "Enviado", "Cancelado"] as const;
 export const fuelLevels = ["Reserva", "1/4", "1/2", "3/4", "Cheio"] as const;
+
+export const inspectionDamageAreas = [
+  "Para-choque dianteiro",
+  "Para-choque traseiro",
+  "Capô",
+  "Teto",
+  "Porta esquerda",
+  "Porta direita",
+  "Lateral esquerda",
+  "Lateral direita",
+  "Rodas",
+  "Vidros",
+] as const;
