@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Camera, CheckSquare, Clock, Timer, Wrench } from "lucide-react";
+import { Camera, CheckSquare, Clock, Mail, Timer, Wrench } from "lucide-react";
 import { demoWorkOrders } from "@/lib/demo-data";
-import { findInspectionByWorkOrderId, findWorkOrderById, listVehicles, StoredInspection, StoredVehicle, StoredWorkOrder } from "@/lib/browser-store";
+import { findInspectionByWorkOrderId, findWorkOrderById, listCustomers, listVehicles, StoredCustomer, StoredInspection, StoredVehicle, StoredWorkOrder } from "@/lib/browser-store";
 
 type DetailOrder = {
   id: string;
@@ -22,6 +22,11 @@ type DetailOrder = {
   finishedAt?: string;
   estimatedProfit?: string;
   estimatedMargin?: string;
+};
+
+type NotificationState = {
+  status: "idle" | "sending" | "success" | "error";
+  message: string;
 };
 
 function formatDateTime(value?: string) {
@@ -43,15 +48,22 @@ function normalizePlate(value: string) {
   return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 }
 
+function normalizeName(value: string) {
+  return value.trim().toLowerCase();
+}
+
 export function WorkOrderDetailClient({ id }: { id: string }) {
   const [storedOrder, setStoredOrder] = useState<StoredWorkOrder | null>(null);
   const [inspection, setInspection] = useState<StoredInspection | null>(null);
   const [vehicles, setVehicles] = useState<StoredVehicle[]>([]);
+  const [customers, setCustomers] = useState<StoredCustomer[]>([]);
+  const [notification, setNotification] = useState<NotificationState>({ status: "idle", message: "" });
 
   useEffect(() => {
     setStoredOrder(findWorkOrderById(id) ?? null);
     setInspection(findInspectionByWorkOrderId(id) ?? null);
     setVehicles(listVehicles());
+    setCustomers(listCustomers());
   }, [id]);
 
   const order: DetailOrder = useMemo(() => {
@@ -81,8 +93,42 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
     return { ...demo, powertrain: "Não informado" };
   }, [id, storedOrder, vehicles]);
 
+  const customerEmail = useMemo(() => {
+    const found = customers.find((customer) => normalizeName(customer.name) === normalizeName(order.customer));
+    return found?.email ?? "";
+  }, [customers, order.customer]);
+
+  async function sendVehicleReadyNotification() {
+    setNotification({ status: "sending", message: "Enviando aviso ao cliente..." });
+
+    try {
+      const response = await fetch("/api/notifications/vehicle-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: order.customer,
+          vehicle: order.vehicle,
+          plate: order.plate ?? "",
+          email: customerEmail,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({ message: "Resposta inválida do servidor." }));
+
+      if (!response.ok) {
+        setNotification({ status: "error", message: data.message ?? "Não foi possível enviar o aviso." });
+        return;
+      }
+
+      setNotification({ status: "success", message: data.message ?? "Aviso enviado/preparado com sucesso." });
+    } catch {
+      setNotification({ status: "error", message: "Falha de comunicação ao enviar o aviso." });
+    }
+  }
+
   const details = [
     ["Cliente", order.customer],
+    ["E-mail", customerEmail || "Não informado no cadastro do cliente"],
     ["Veículo", order.vehicle],
     ["Placa", order.plate ?? "Não informada"],
     ["Propulsão", order.powertrain ?? "Não informado"],
@@ -140,10 +186,21 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
       </div>
 
       <div className="rounded-3xl bg-slate-950 p-6 text-white shadow-sm">
-        <p className="text-sm font-bold text-blue-300">Mensagem ao cliente</p><h2 className="mt-2 text-2xl font-black">Veículo pronto para retirada</h2>
+        <Mail className="h-8 w-8 text-blue-300" />
+        <p className="mt-4 text-sm font-bold text-blue-300">Mensagem ao cliente</p>
+        <h2 className="mt-2 text-2xl font-black">Veículo pronto para retirada</h2>
         <p className="mt-4 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-slate-200">Olá, {order.customer}. O serviço do seu veículo {order.vehicle} foi finalizado pela AutoFlow Garage. Seu veículo já está disponível para retirada.</p>
-        <form action="/api/notifications/vehicle-ready" method="post" className="mt-6"><input type="hidden" name="customer" value={order.customer} /><input type="hidden" name="vehicle" value={order.vehicle} /><input type="hidden" name="plate" value={order.plate ?? ""} /><button className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-950">Enviar aviso demo</button></form>
-        <p className="mt-4 text-xs leading-5 text-slate-400">No MVP real, esse botão usará Resend para e-mail.</p>
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Destino</p>
+          <p className="mt-1 text-sm font-black text-white">{customerEmail || "E-mail não informado"}</p>
+        </div>
+        <button type="button" onClick={sendVehicleReadyNotification} disabled={notification.status === "sending"} className="mt-6 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-70">
+          {notification.status === "sending" ? "Enviando..." : "Enviar aviso por e-mail"}
+        </button>
+        {notification.message && (
+          <p className={`mt-4 rounded-2xl p-4 text-xs leading-5 ${notification.status === "error" ? "bg-red-500/10 text-red-100" : "bg-emerald-500/10 text-emerald-100"}`}>{notification.message}</p>
+        )}
+        <p className="mt-4 text-xs leading-5 text-slate-400">Sem RESEND_API_KEY, o sistema mantém o modo demo. Com a chave configurada, o envio usa Resend no servidor.</p>
       </div>
     </div>
   );
