@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 
-export const demoCompanyCnpj = "12.345.678/0001-90";
+export const demoCompanyCnpj = "DEMO-AJB-AUTOFLOW";
 
 export async function getDemoCompanyId() {
   const company = await db.company.findUnique({
