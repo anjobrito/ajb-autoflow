@@ -4,6 +4,8 @@ Este documento organiza a evolução do **AJB AutoFlow by AJBSYSTEMS** como plat
 
 A proposta do produto é evoluir de um MVP comercial funcional para uma solução operacional completa, com gestão de atendimento, pátio, estoque, histórico do veículo, financeiro, CRM, equipe, comissões e integrações futuras.
 
+> Status pós-integração: a `main` já contém a base integrada do MVP com clientes, veículos com propulsão, fornecedores, produtos/estoque, serviços, ordens de serviço, pátio/Kanban, histórico do veículo, checklist/vistoria, lembretes, financeiro inicial, contas a pagar/receber, funcionários, comissões preparatórias, selects centralizados e documentação atualizada.
+
 ## Visão do Produto
 
 O AJB AutoFlow deve deixar de ser apenas um controle de ordens de serviço e se consolidar como uma plataforma operacional, financeira e comercial para negócios automotivos.
@@ -412,15 +414,15 @@ O produto já está posicionado como SaaS multiempresa na comunicação comercia
 
 ---
 
-## Priorização Recomendada Atualizada
+## Priorização Recomendada Pós-Integração
 
 ### Bloco imediato
 
-1. Rodar/verificar build após a integração de módulos.
+1. Rodar/verificar build da `main` pós-integração.
 2. Revisar imports, tipos e eventuais erros TypeScript.
-3. Revisar navegação manual dos novos módulos.
-4. Melhorar mensagens vazias e validações leves.
-5. Preparar PR da branch `integration/roadmap-modulos` para `main`.
+3. Revisar navegação manual dos módulos já integrados.
+4. Validar fluxos principais com `localStorage`.
+5. Melhorar mensagens vazias e validações leves sem alterar regra de negócio.
 
 ### Segundo bloco
 
@@ -444,7 +446,8 @@ O produto já está posicionado como SaaS multiempresa na comunicação comercia
 2. Autenticação e isolamento multiempresa.
 3. Planos, limites e assinatura.
 4. WhatsApp oficial.
-5. Integrações fiscais.
+5. Pix no checkout.
+6. Integrações fiscais.
 
 ---
 
