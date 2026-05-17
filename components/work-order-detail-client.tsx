@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Camera, CheckSquare, Clock, Timer, Wrench } from "lucide-react";
 import { demoWorkOrders } from "@/lib/demo-data";
 import { findInspectionByWorkOrderId, findWorkOrderById, listVehicles, StoredInspection, StoredVehicle, StoredWorkOrder } from "@/lib/browser-store";
+import { WorkOrderCommissionClient } from "@/components/work-order-commission-client";
 
 type DetailOrder = {
   id: string;
@@ -125,6 +126,8 @@ export function WorkOrderDetailClient({ id }: { id: string }) {
             {details.map(([label, value]) => (<div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 font-black text-slate-950">{value}</p></div>))}
           </div>
         </div>
+
+        <WorkOrderCommissionClient workOrderId={id} />
 
         <div className="rounded-3xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-black">Resumo da vistoria</h2><CheckSquare className="h-6 w-6 text-blue-700" /></div>
