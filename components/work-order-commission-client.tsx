@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createCommissionFromWorkOrder, findCommissionsByWorkOrderId, findWorkOrderById, getEmployeeCommissionRule, listEmployees, numberToCurrency, calculateCommissionAmount, StoredCommission, StoredEmployee, StoredWorkOrderTargetType } from "@/lib/browser-store";
+import { calculateCommissionAmount, createCommissionFromWorkOrder, findCommissionsByWorkOrderId, findWorkOrderById, getEmployeeCommissionRule, listEmployees, numberToCurrency, StoredCommission, StoredEmployee, StoredWorkOrder } from "@/lib/browser-store";
 
 type TargetType = "Serviço" | "Produto/peça" | "Lavagem";
 const targetTypes: TargetType[] = ["Serviço", "Produto/peça", "Lavagem"];
 
 export function WorkOrderCommissionClient({ workOrderId }: { workOrderId: string }) {
   const [commissions, setCommissions] = useState<StoredCommission[]>([]);
-  const [order, setOrder] = useState<ReturnType<typeof findWorkOrderById> | undefined>(undefined);
+  const [order, setOrder] = useState<StoredWorkOrder | undefined>(undefined);
   const [employees, setEmployees] = useState<StoredEmployee[]>([]);
 
   function reload() {
