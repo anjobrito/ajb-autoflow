@@ -135,6 +135,9 @@ export type StoredCommission = {
   status: StoredCommissionStatus | string;
   referenceDate?: string;
   paidAt?: string;
+  sourceWorkOrderId?: string;
+  sourceWorkOrderCode?: string;
+  financialEntryId?: string;
   notes: string;
   createdAt: string;
   updatedAt?: string;
@@ -187,6 +190,47 @@ function readList<T>(key: string): T[] {
 function writeList<T>(key: string, value: T[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(key, JSON.stringify(value));
+}
+
+function normalizeCommissionStatusForFinancial(status: string): StoredFinancialEntry["status"] {
+  if (status === "Paga") return "Pago";
+  if (status === "Cancelada") return "Cancelado";
+  return "Pendente";
+}
+
+function buildCommissionFinancialEntry(commission: StoredCommission, existing?: StoredFinancialEntry): StoredFinancialEntry {
+  const timestamp = new Date().toISOString();
+  const workOrderSuffix = commission.sourceWorkOrderCode ? ` • ${commission.sourceWorkOrderCode}` : "";
+
+  return {
+    id: existing?.id ?? crypto.randomUUID(),
+    type: "Pagar",
+    description: `Comissão ${commission.employeeName}${workOrderSuffix}`,
+    category: "Comissões",
+    amount: commission.calculatedAmount || "R$ 0,00",
+    dueDate: commission.referenceDate || new Date().toISOString().slice(0, 10),
+    status: normalizeCommissionStatusForFinancial(commission.status),
+    paymentMethod: existing?.paymentMethod || "Outro",
+    notes: commission.notes || `Gerado pelo módulo de comissões para ${commission.targetType}: ${commission.targetName}`,
+    createdAt: existing?.createdAt ?? timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+function syncCommissionFinancialEntry(commission: StoredCommission): StoredCommission {
+  if (commission.status === "Cancelada") {
+    if (!commission.financialEntryId) return commission;
+    const cancelledEntries = listFinancialEntries().map((entry) => entry.id === commission.financialEntryId ? { ...entry, status: "Cancelado" as const, updatedAt: new Date().toISOString() } : entry);
+    writeList(financialEntriesKey, cancelledEntries);
+    return commission;
+  }
+
+  const entries = listFinancialEntries();
+  const existing = commission.financialEntryId ? entries.find((entry) => entry.id === commission.financialEntryId) : undefined;
+  const financialEntry = buildCommissionFinancialEntry(commission, existing);
+  const updatedEntries = existing ? entries.map((entry) => entry.id === financialEntry.id ? financialEntry : entry) : [financialEntry, ...entries];
+  writeList(financialEntriesKey, updatedEntries);
+  return { ...commission, financialEntryId: financialEntry.id };
 }
 
 export function getCompany(): StoredCompany {
@@ -306,21 +350,81 @@ export function updateReminderStatus(id: string, status: StoredReminder["status"
 }
 
 export function listCommissions() { return readList<StoredCommission>(commissionsKey); }
-export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt" | "updatedAt" | "paidAt">) {
-  const record: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+export function findCommissionById(id: string) { return listCommissions().find((commission) => commission.id === id); }
+export function findCommissionsByWorkOrderId(workOrderId: string) { return listCommissions().filter((commission) => commission.sourceWorkOrderId === workOrderId); }
+export function saveCommission(commission: Omit<StoredCommission, "id" | "createdAt" | "updatedAt" | "paidAt" | "financialEntryId">) {
+  const timestamp = new Date().toISOString();
+  const draft: StoredCommission = { ...commission, id: crypto.randomUUID(), createdAt: timestamp, updatedAt: timestamp };
+  const record = syncCommissionFinancialEntry(draft);
   writeList(commissionsKey, [record, ...listCommissions()]);
   return record;
 }
+export function updateCommission(id: string, commission: Partial<Omit<StoredCommission, "id" | "createdAt">>) {
+  const timestamp = new Date().toISOString();
+  let saved: StoredCommission | undefined;
+  const updated = listCommissions().map((item) => {
+    if (item.id !== id) return item;
+    const merged = syncCommissionFinancialEntry({ ...item, ...commission, updatedAt: timestamp });
+    saved = merged;
+    return merged;
+  });
+  writeList(commissionsKey, updated);
+  return saved;
+}
 export function updateCommissionStatus(id: string, status: StoredCommissionStatus) {
   const timestamp = new Date().toISOString();
-  const updated = listCommissions().map((commission) => commission.id === id ? { ...commission, status, paidAt: status === "Paga" ? timestamp : undefined, updatedAt: timestamp } : commission);
+  let saved: StoredCommission | undefined;
+  const updated = listCommissions().map((commission) => {
+    if (commission.id !== id) return commission;
+    const merged = syncCommissionFinancialEntry({ ...commission, status, paidAt: status === "Paga" ? timestamp : undefined, updatedAt: timestamp });
+    saved = merged;
+    return merged;
+  });
   writeList(commissionsKey, updated);
-  return updated.find((commission) => commission.id === id);
+  return saved;
 }
 export function deleteCommission(id: string) {
-  const updated = listCommissions().filter((commission) => commission.id !== id);
+  const commission = findCommissionById(id);
+  if (commission?.financialEntryId) {
+    const updatedEntries = listFinancialEntries().map((entry) => entry.id === commission.financialEntryId ? { ...entry, status: "Cancelado" as const, updatedAt: new Date().toISOString() } : entry);
+    writeList(financialEntriesKey, updatedEntries);
+  }
+  const updated = listCommissions().filter((item) => item.id !== id);
   writeList(commissionsKey, updated);
   return updated;
+}
+
+export function createCommissionFromWorkOrder(workOrderId: string, targetType: StoredCommissionTargetType = "Serviço") {
+  const order = findWorkOrderById(workOrderId);
+  if (!order) return undefined;
+  const employee = order.responsibleEmployeeId ? listEmployees().find((item) => item.id === order.responsibleEmployeeId) : undefined;
+  if (!employee) return undefined;
+
+  const rule = getEmployeeCommissionRule(employee, targetType);
+  if (!rule || rule.valueType === "Sem comissão") return undefined;
+
+  const baseAmount = targetType === "Produto/peça" ? order.partsTotal || order.productSale || order.total : targetType === "Lavagem" ? order.serviceSale || order.servicesTotal || order.total : order.servicesTotal || order.serviceSale || order.total;
+  const targetName = targetType === "Produto/peça" ? order.product || "Produto/peça da OS" : targetType === "Lavagem" ? order.service || "Lavagem da OS" : order.service || "Serviço da OS";
+  const calculatedAmount = numberToCurrency(calculateCommissionAmount(baseAmount, rule.valueType, rule.value));
+
+  const existing = findCommissionsByWorkOrderId(workOrderId).find((commission) => commission.targetType === targetType && commission.employeeId === employee.id);
+  if (existing) return existing;
+
+  return saveCommission({
+    employeeId: employee.id,
+    employeeName: employee.name,
+    targetType,
+    targetName,
+    valueType: rule.valueType,
+    value: rule.value,
+    baseAmount,
+    calculatedAmount,
+    status: "Pendente",
+    referenceDate: new Date().toISOString().slice(0, 10),
+    sourceWorkOrderId: order.id,
+    sourceWorkOrderCode: order.code,
+    notes: `Comissão sugerida a partir da ${order.code}.`,
+  });
 }
 
 export function listFinancialEntries() { return readList<StoredFinancialEntry>(financialEntriesKey); }
@@ -353,6 +457,12 @@ export function calculateCommissionAmount(baseAmount: string, valueType: string,
   if (!Number.isFinite(commissionValue) || commissionValue <= 0) return 0;
   if (valueType === "Percentual") return base * (commissionValue / 100);
   return commissionValue;
+}
+export function getEmployeeCommissionRule(employee: StoredEmployee, targetType: string) {
+  if (targetType === "Serviço" && employee.serviceCommissionType && employee.serviceCommissionType !== "Sem comissão") return { valueType: employee.serviceCommissionType, value: employee.serviceCommissionValue ?? "" };
+  if (targetType === "Produto/peça" && employee.partCommissionType && employee.partCommissionType !== "Sem comissão") return { valueType: employee.partCommissionType, value: employee.partCommissionValue ?? "" };
+  if (targetType === "Lavagem" && employee.washCommissionType && employee.washCommissionType !== "Sem comissão") return { valueType: employee.washCommissionType, value: employee.washCommissionValue ?? "" };
+  return undefined;
 }
 
 export function getDashboardStats() {
