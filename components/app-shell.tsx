@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeDollarSign, Bell, Building2, Car, ClipboardList, Gauge, HandCoins, History, LayoutDashboard, Package, Settings, UserRoundCog, Users, Wrench } from "lucide-react";
+import { BadgeDollarSign, Bell, Building2, Car, ClipboardList, Gauge, HandCoins, History, LayoutDashboard, Package, Receipt, Settings, UserRoundCog, Users, Wallet, Wrench } from "lucide-react";
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: Gauge },
@@ -13,6 +13,8 @@ const menu = [
   { label: "Serviços", href: "/servicos", icon: Wrench },
   { label: "Ordens", href: "/ordens-servico", icon: ClipboardList },
   { label: "Financeiro", href: "/financeiro", icon: BadgeDollarSign },
+  { label: "Contas a pagar", href: "/contas-pagar", icon: Wallet },
+  { label: "Contas a receber", href: "/contas-receber", icon: Receipt },
   { label: "Comissões", href: "/comissoes", icon: HandCoins },
   { label: "Lembretes", href: "/lembretes", icon: Bell },
   { label: "Empresa", href: "/empresa", icon: Settings },
