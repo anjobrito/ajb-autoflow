@@ -13,13 +13,36 @@ import {
   updateFinancialAccount,
   updateFinancialAccountStatus,
 } from "@/lib/finance-accounts-store";
-import {
-  accountsPayableCategories,
-  accountsReceivableCategories,
-  paymentMethods,
-  payableStatuses,
-  receivableStatuses,
-} from "@/lib/select-options";
+import { paymentMethods } from "@/lib/select-options";
+
+const accountsPayableCategories = [
+  "Peças e produtos",
+  "Serviços terceirizados",
+  "Aluguel",
+  "Salários",
+  "Comissões",
+  "Impostos e taxas",
+  "Energia elétrica",
+  "Água",
+  "Internet e telefone",
+  "Manutenção interna",
+  "Marketing",
+  "Outro",
+] as const;
+
+const accountsReceivableCategories = [
+  "Ordem de serviço",
+  "Venda de serviço",
+  "Venda de peça/produto",
+  "Lavagem",
+  "Estética automotiva",
+  "Contrato mensal",
+  "Reembolso",
+  "Outro",
+] as const;
+
+const payableStatuses = ["Pendente", "Pago", "Vencido", "Cancelado"] as const;
+const receivableStatuses = ["Pendente", "Recebido", "Vencido", "Cancelado"] as const;
 
 type AccountMode = "Pagar" | "Receber";
 
