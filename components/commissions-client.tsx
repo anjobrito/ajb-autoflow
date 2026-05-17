@@ -69,7 +69,7 @@ export function CommissionsClient() {
       </div>
 
       <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 text-sm font-semibold text-blue-900">
-        As comissões já estão preparadas para vínculo com funcionários cadastrados. O cálculo financeiro geral ainda não é alterado nesta fase do MVP.
+        As comissões estão preparadas para demonstração comercial e vínculo com funcionários cadastrados. O cálculo financeiro geral ainda não é alterado nesta fase do MVP.
       </div>
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">

@@ -6,9 +6,9 @@ export default function FinanceiroPage() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Gestão financeira"
+        eyebrow="Financeiro operacional"
         title="Financeiro"
-        description="Veja faturamento, lucro estimado, ticket médio e margem geral das ordens de serviço."
+        description="Acompanhe faturamento, lucro estimado, ticket médio e margem geral das ordens de serviço para apoiar decisões comerciais do negócio automotivo."
       />
       <FinanceClient />
     </AppShell>

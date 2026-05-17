@@ -53,7 +53,7 @@ export function FinanceClient() {
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
           <div className="border-b border-slate-100 p-6">
             <h2 className="text-xl font-black">Ordens consideradas</h2>
-            <p className="mt-2 text-sm text-slate-600">Resumo financeiro estimado com base nas OS cadastradas no navegador.</p>
+            <p className="mt-2 text-sm text-slate-600">Resumo financeiro operacional com base nas OS cadastradas no navegador.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
@@ -77,7 +77,7 @@ export function FinanceClient() {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={7} className="px-5 py-10 text-center text-slate-500">Nenhuma OS cadastrada ainda. Crie uma ordem de serviço para alimentar o financeiro.</td>
+                    <td colSpan={7} className="px-5 py-10 text-center text-slate-500">Nenhuma OS cadastrada ainda. Crie a primeira OS para alimentar faturamento, margem e financeiro operacional.</td>
                   </tr>
                 )}
               </tbody>
@@ -89,7 +89,7 @@ export function FinanceClient() {
           <p className="text-sm font-bold text-blue-300">Leitura gerencial</p>
           <h2 className="mt-2 text-2xl font-black">Controle lucro, não só atendimento.</h2>
           <p className="mt-4 text-sm leading-6 text-slate-300">
-            Essa tela mostra ao dono da oficina quanto entrou, quanto sobrou estimado e qual margem foi gerada pelas peças e serviços.
+            Essa tela mostra ao dono da oficina, lava-jato ou centro automotivo quanto entrou, quanto sobrou estimado e qual margem foi gerada pelas peças e serviços.
           </p>
           <div className="mt-6 grid gap-3 text-sm text-slate-200">
             <div className="rounded-2xl bg-white/10 p-4">OS cadastradas: {summary.workOrders}</div>

@@ -3,25 +3,25 @@ import { ArrowRight, Bell, Car, ClipboardList, Gauge, Package, Users, type Lucid
 const steps = [
   {
     title: "1. Cadastre o cliente",
-    description: "Registre nome, telefone, e-mail e cidade do cliente final da oficina ou lava-jato.",
+    description: "Registre contato, cidade e dados essenciais para melhorar relacionamento e retorno.",
     href: "/clientes/novo",
     icon: Users,
   },
   {
-    title: "2. Cadastre o veículo",
+    title: "2. Adicione o veículo",
     description: "Vincule placa, modelo, marca e quilometragem ao cliente para manter histórico.",
     href: "/veiculos/novo",
     icon: Car,
   },
   {
-    title: "3. Abra a ordem de serviço",
+    title: "3. Crie a primeira OS",
     description: "Selecione cliente, veículo, serviço, produto e status do atendimento.",
     href: "/ordens-servico/nova",
     icon: ClipboardList,
   },
   {
     title: "4. Avise quando estiver pronto",
-    description: "Use a página de detalhe da OS para avisar que o veículo está liberado para retirada.",
+    description: "Use a página de detalhe da OS para manter o cliente informado na entrega.",
     href: "/ordens-servico",
     icon: Bell,
   },
@@ -34,10 +34,10 @@ type ModuleCard = {
 };
 
 const modules: ModuleCard[] = [
-  { title: "Clientes", description: "CRM operacional simples para pequenos negócios automotivos.", icon: Users },
+  { title: "Clientes", description: "Relacionamento simples para pequenos negócios automotivos.", icon: Users },
   { title: "Veículos", description: "Histórico por placa, modelo e cliente responsável.", icon: Car },
-  { title: "Estoque", description: "Produtos, peças e insumos usados nos serviços.", icon: Package },
-  { title: "Ordens", description: "Abertura, acompanhamento e conclusão de OS.", icon: ClipboardList },
+  { title: "Estoque", description: "Produtos, peças e insumos com apoio ao controle de margem.", icon: Package },
+  { title: "Ordens", description: "Abertura, acompanhamento, pátio e conclusão de OS.", icon: ClipboardList },
 ];
 
 export default function DemoPage() {
@@ -64,21 +64,21 @@ export default function DemoPage() {
       <section className="mx-auto max-w-7xl px-6 py-14 sm:px-10 lg:px-16">
         <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Demonstração guiada</p>
+            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Demonstração comercial guiada</p>
             <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">Veja o fluxo principal do AJB AutoFlow em poucos minutos.</h1>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">A ideia é simples: cadastrar o cliente, vincular o veículo, abrir a ordem de serviço e avisar quando estiver pronto.</p>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">Um SaaS multiempresa da AJBSYSTEMS para oficina, lava-jato, estética automotiva, autopeças e centro automotivo.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="/comece-agora" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 font-black text-white hover:bg-blue-700">
-                Começar teste <ArrowRight className="h-5 w-5" />
+                Começar demonstração <ArrowRight className="h-5 w-5" />
               </a>
-              <a href="/dashboard" className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-6 py-4 font-black text-slate-950 hover:bg-white">Abrir painel</a>
+              <a href="/dashboard" className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-6 py-4 font-black text-slate-950 hover:bg-white">Abrir painel demo</a>
             </div>
           </div>
 
           <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
             <p className="text-sm font-bold text-blue-300">Fluxo comercial</p>
             <h2 className="mt-2 text-2xl font-black">Cliente → Veículo → OS → Aviso</h2>
-            <p className="mt-4 text-sm leading-6 text-slate-300">Esse é o argumento mais fácil para vender para oficina, lava-jato e estética automotiva.</p>
+            <p className="mt-4 text-sm leading-6 text-slate-300">Esse é o argumento mais fácil para vender para oficina, lava-jato, estética automotiva, autopeças e centro automotivo.</p>
           </div>
         </div>
 
@@ -101,8 +101,8 @@ export default function DemoPage() {
         <div className="mt-12 rounded-[2rem] bg-white p-6 shadow-sm md:p-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-wide text-blue-700">Módulos do MVP</p>
-              <h2 className="mt-2 text-3xl font-black">O necessário para uma primeira venda.</h2>
+              <p className="text-sm font-black uppercase tracking-wide text-blue-700">Módulos do MVP comercial</p>
+              <h2 className="mt-2 text-3xl font-black">Base pronta para apresentar, vender e evoluir com clientes reais.</h2>
             </div>
             <a href="/planos" className="inline-flex rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white">Ver planos</a>
           </div>

@@ -56,10 +56,10 @@ export default function ComeceAgoraPage() {
       <section className="mx-auto grid max-w-7xl gap-8 px-6 py-12 sm:px-10 lg:grid-cols-[1fr_520px] lg:px-16">
         <div className="rounded-[2rem] bg-slate-950 p-8 text-white shadow-sm md:p-10">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500"><Building2 className="h-7 w-7" /></div>
-          <h1 className="mt-8 text-4xl font-black leading-tight sm:text-5xl">Comece a controlar sua oficina ou lava-jato pelo celular.</h1>
-          <p className="mt-5 text-lg leading-8 text-slate-300">Cadastre sua empresa, organize clientes, veículos, estoque e ordens de serviço em uma plataforma simples.</p>
+          <h1 className="mt-8 text-4xl font-black leading-tight sm:text-5xl">Comece a controlar sua oficina, lava-jato ou estética automotiva pelo celular.</h1>
+          <p className="mt-5 text-lg leading-8 text-slate-300">Cadastre sua empresa no AJB AutoFlow by AJBSYSTEMS e organize clientes, veículos, pátio, estoque, ordens de serviço e financeiro operacional em uma plataforma simples.</p>
           <div className="mt-8 grid gap-4">
-            {["Teste o painel em poucos minutos", "Cadastre clientes, veículos e serviços", "Avise o cliente quando o veículo estiver pronto", "Plano inicial de R$ 49,90/mês"].map((item) => (
+            {["Teste o painel em poucos minutos", "Cadastre clientes, veículos, serviços e equipe", "Acompanhe pátio, margem e contas operacionais", "Plano inicial de R$ 49,90/mês"].map((item) => (
               <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 text-sm font-bold text-slate-100"><CheckCircle2 className="h-5 w-5 text-emerald-400" />{item}</div>
             ))}
           </div>
@@ -67,9 +67,9 @@ export default function ComeceAgoraPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-[2rem] bg-white p-6 shadow-sm md:p-8">
-          <p className="text-sm font-bold text-blue-700">Cadastro rápido</p>
+          <p className="text-sm font-bold text-blue-700">Cadastro rápido multiempresa</p>
           <h2 className="mt-1 text-3xl font-black">Dados da empresa</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Escolha o tipo de negócio para o sistema adaptar módulos, lembretes e linguagem operacional.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Escolha o tipo de negócio para apresentar uma demonstração mais alinhada à oficina, lava-jato, estética automotiva, autopeças ou centro automotivo.</p>
 
           <div className="mt-6 grid gap-4">
             <Input name="tradeName" label="Nome fantasia" placeholder="Ex: Oficina do João" />
@@ -88,8 +88,8 @@ export default function ComeceAgoraPage() {
           </div>
 
           <div className="mt-6 flex items-center justify-between gap-3">
-            {saved ? <span className="text-sm font-bold text-emerald-700">Empresa cadastrada!</span> : <span className="text-xs text-slate-500">Sem cartão no MVP demo.</span>}
-            <button className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">Começar agora <ArrowRight className="h-4 w-4" /></button>
+            {saved ? <span className="text-sm font-bold text-emerald-700">Empresa cadastrada para demonstração!</span> : <span className="text-xs text-slate-500">Sem cartão no MVP demo.</span>}
+            <button className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">Começar demonstração <ArrowRight className="h-4 w-4" /></button>
           </div>
         </form>
       </section>
