@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { deleteCommission, listCommissions, numberToCurrency, StoredCommission, updateCommissionStatus, currencyToNumber } from "@/lib/browser-store";
 
@@ -31,6 +32,21 @@ export function CommissionsClient() {
     const matchesTarget = targetFilter === "Todas" || commission.targetType === targetFilter;
     return matchesStatus && matchesTarget;
   }), [commissions, statusFilter, targetFilter]);
+
+  const employeeSummaries = useMemo(() => {
+    const summary = new Map<string, { employeeName: string; pending: number; paid: number; cancelled: number; count: number }>();
+    commissions.forEach((commission) => {
+      const key = commission.employeeId || commission.employeeName || "Funcionário a definir";
+      const current = summary.get(key) || { employeeName: commission.employeeName || "Funcionário a definir", pending: 0, paid: 0, cancelled: 0, count: 0 };
+      const amount = currencyToNumber(commission.calculatedAmount ?? "0");
+      if (commission.status === "Pendente") current.pending += amount;
+      if (commission.status === "Paga") current.paid += amount;
+      if (commission.status === "Cancelada") current.cancelled += amount;
+      current.count += 1;
+      summary.set(key, current);
+    });
+    return Array.from(summary.values()).sort((a, b) => (b.pending + b.paid) - (a.pending + a.paid));
+  }, [commissions]);
 
   const pendingTotal = commissions.filter((commission) => commission.status === "Pendente").reduce((sum, commission) => sum + currencyToNumber(commission.calculatedAmount ?? "0"), 0);
   const paidTotal = commissions.filter((commission) => commission.status === "Paga").reduce((sum, commission) => sum + currencyToNumber(commission.calculatedAmount ?? "0"), 0);
@@ -67,13 +83,42 @@ export function CommissionsClient() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 text-sm font-semibold text-blue-900 md:col-span-2">
-          Controle as comissões lançadas manualmente por funcionário, com valor base, cálculo estimado e status de pagamento. A integração automática com OS, peças e lavagens fica preparada para a próxima etapa.
+          Controle as comissões lançadas manualmente ou sugeridas por OS, com valor base, cálculo estimado, status de pagamento e conta a pagar vinculada no financeiro.
         </div>
         <div className="rounded-3xl bg-white p-5 shadow-sm">
           <p className="text-sm font-bold text-slate-500">Distribuição</p>
           <p className="mt-2 text-sm font-semibold text-slate-700">Serviços: {serviceCount}</p>
           <p className="mt-1 text-sm font-semibold text-slate-700">Produtos/peças: {productCount}</p>
           <p className="mt-1 text-sm font-semibold text-slate-700">Lavagens: {washCount}</p>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-5">
+          <h2 className="text-xl font-black text-slate-950">Resumo por funcionário</h2>
+          <p className="mt-2 text-sm text-slate-600">Visão rápida de pendências, pagamentos e cancelamentos por colaborador.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                {["Funcionário", "Pendente", "Pago", "Cancelado", "Lançamentos"].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {employeeSummaries.length === 0 ? (
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">Nenhum resumo disponível ainda.</td></tr>
+              ) : employeeSummaries.map((summary) => (
+                <tr key={summary.employeeName} className="hover:bg-slate-50">
+                  <td className="px-5 py-4 font-black text-slate-950">{summary.employeeName}</td>
+                  <td className="px-5 py-4 text-amber-700 font-black">{numberToCurrency(summary.pending)}</td>
+                  <td className="px-5 py-4 text-emerald-700 font-black">{numberToCurrency(summary.paid)}</td>
+                  <td className="px-5 py-4 text-rose-700 font-black">{numberToCurrency(summary.cancelled)}</td>
+                  <td className="px-5 py-4 text-slate-700">{summary.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -94,10 +139,10 @@ export function CommissionsClient() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left text-sm">
+          <table className="w-full min-w-[1280px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                {["Funcionário", "Base", "Item", "Valor base", "Regra", "Calculado", "Referência", "Status", "Ações"].map((column) => (
+                {["Funcionário", "Base", "Item", "OS", "Valor base", "Regra", "Calculado", "Referência", "Status", "Ações"].map((column) => (
                   <th key={column} className="px-5 py-4 font-black">{column}</th>
                 ))}
               </tr>
@@ -105,7 +150,7 @@ export function CommissionsClient() {
             <tbody className="divide-y divide-slate-100">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                  <td colSpan={10} className="px-5 py-8 text-center text-sm font-semibold text-slate-500">
                     Nenhuma comissão encontrada. Cadastre uma comissão para começar o controle de pagamento variável.
                   </td>
                 </tr>
@@ -114,6 +159,7 @@ export function CommissionsClient() {
                   <td className="px-5 py-4 font-black text-slate-950">{commission.employeeName || "Funcionário a definir"}</td>
                   <td className="px-5 py-4 text-slate-700">{commission.targetType}</td>
                   <td className="px-5 py-4 text-slate-700">{commission.targetName}</td>
+                  <td className="px-5 py-4 text-slate-700">{commission.sourceWorkOrderCode || "Manual"}</td>
                   <td className="px-5 py-4 text-slate-700">{commission.baseAmount || "-"}</td>
                   <td className="px-5 py-4 text-slate-700">{commission.valueType} • {commission.value}</td>
                   <td className="px-5 py-4 font-black text-slate-950">{commission.calculatedAmount || "-"}</td>
@@ -121,6 +167,8 @@ export function CommissionsClient() {
                   <td className="px-5 py-4"><StatusBadge status={commission.status || "Pendente"} /></td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-2">
+                      <Link href={`/comissoes/${commission.id}`} className="rounded-full bg-blue-100 px-3 py-2 text-xs font-black text-blue-700 hover:bg-blue-200">Detalhe</Link>
+                      <Link href={`/comissoes/${commission.id}/editar`} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-200">Editar</Link>
                       <button type="button" onClick={() => handleStatusChange(commission.id, "Paga")} className="rounded-full bg-emerald-100 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-200">Pagar</button>
                       <button type="button" onClick={() => handleStatusChange(commission.id, "Cancelada")} className="rounded-full bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-200">Cancelar</button>
                       <button type="button" onClick={() => handleDelete(commission.id)} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-200">Excluir</button>
