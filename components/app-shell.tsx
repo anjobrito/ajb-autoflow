@@ -7,6 +7,7 @@ const menu = [
   { label: "Clientes", href: "/clientes", icon: Users },
   { label: "Veículos", href: "/veiculos", icon: Car },
   { label: "Histórico", href: "/historico-veiculo", icon: History },
+  { label: "Financ. e Gravames", href: "/financiamentos-gravames", icon: ClipboardList },
   { label: "Fornecedores", href: "/fornecedores", icon: Building2 },
   { label: "Funcionários", href: "/funcionarios", icon: UserRoundCog },
   { label: "Estoque", href: "/produtos", icon: Package },
