@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { demoCustomers, demoProducts, demoServices, demoVehicles } from "@/lib/demo-data";
-import { filterProductsByBusinessProfile, filterServicesByBusinessProfile } from "@/lib/business-domain-options";
+import { filterProductsByBusinessProfile, filterServicesByBusinessProfile, getOperationalFormLabels } from "@/lib/business-domain-options";
 import { getBusinessProfileByLabel } from "@/lib/business-profiles";
 import { currencyToNumber, getCompany, listCustomers, listEmployees, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredEmployee, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
 import { newWorkOrderStatuses } from "@/lib/select-options";
@@ -33,6 +33,7 @@ export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo
   const [businessType, setBusinessType] = useState("");
 
   const businessProfile = useMemo(() => getBusinessProfileByLabel(businessType), [businessType]);
+  const formLabels = useMemo(() => getOperationalFormLabels(businessProfile), [businessProfile]);
 
   const productOptions = useMemo(() => {
     const allProducts = [
@@ -127,16 +128,16 @@ export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo
     <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <div className="rounded-3xl bg-white p-0">
         <h2 className="text-xl font-black text-slate-950">Dados do fluxo operacional</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione cliente, veículo, serviço, produto e status inicial. Produtos e serviços são filtrados pelo perfil {businessProfile.label}.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione cliente, veículo, etapa, item operacional e status inicial. Campos de domínio respeitam o perfil {businessProfile.label}.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...customers.map((c) => c.name), ...demoCustomers.map((c) => c.name)].map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Veículo<select required name="vehicle" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...vehicles.map((v) => `${v.plate} - ${v.brand} ${v.model}`.trim()), ...demoVehicles.map((v) => `${v.plate} - ${v.model}`)].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Serviço<select value={selectedService} onChange={(event) => setSelectedService(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{serviceOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} inputMode="numeric" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">{formLabels.serviceLabel}<select value={selectedService} onChange={(event) => setSelectedService(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{serviceOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">{formLabels.productLabel}<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">{formLabels.quantityLabel}<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} inputMode="numeric" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{newWorkOrderStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Responsável<select value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option value="">Sem responsável definido</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">{formLabels.responsibleLabel}<select value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option value="">Sem responsável definido</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>
         </div>
 
         <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o serviço solicitado, orientação operacional ou observação para a equipe." /></label>
@@ -152,10 +153,10 @@ export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo
         <p className="text-sm font-bold text-blue-300">Resumo financeiro</p>
         <h2 className="mt-2 text-2xl font-black">Total: {numberToCurrency(totals.total)}</h2>
         <div className="mt-6 grid gap-3 text-sm text-slate-200">
-          <div className="rounded-2xl bg-white/10 p-4">Peças: {numberToCurrency(totals.productSale)}</div>
-          <div className="rounded-2xl bg-white/10 p-4">Serviços: {numberToCurrency(totals.serviceSale)}</div>
-          <div className="rounded-2xl bg-white/10 p-4">Custo das peças: {numberToCurrency(totals.productCost)}</div>
-          <div className="rounded-2xl bg-white/10 p-4">Responsável: {responsibleEmployee?.name ?? "Sem responsável definido"}</div>
+          <div className="rounded-2xl bg-white/10 p-4">{formLabels.productSummaryLabel}: {numberToCurrency(totals.productSale)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">{formLabels.serviceSummaryLabel}: {numberToCurrency(totals.serviceSale)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">{formLabels.productCostSummaryLabel}: {numberToCurrency(totals.productCost)}</div>
+          <div className="rounded-2xl bg-white/10 p-4">{formLabels.responsibleLabel}: {responsibleEmployee?.name ?? "Sem responsável definido"}</div>
           <div className="rounded-2xl bg-emerald-500/20 p-4 font-black text-emerald-200">Lucro estimado: {numberToCurrency(totals.profit)}</div>
           <div className="rounded-2xl bg-blue-500/20 p-4 font-black text-blue-100">Margem estimada: {pct(totals.margin)}</div>
         </div>
