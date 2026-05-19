@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Banknote, Car, FileText, Pencil, Plus, Search, ShieldCheck, Trash2, Users } from "lucide-react";
 import { currencyToNumber, listCustomers, listEmployees, listVehicles, numberToCurrency, StoredCustomer, StoredEmployee, StoredVehicle } from "@/lib/browser-store";
 import { UiModal } from "@/components/ui-modal";
+import { financingInstitutions, vehicleBrands, vehicleYears } from "@/lib/select-options";
 import {
   createEmptyVehicleFinancingDraft,
   deleteVehicleFinancing,
@@ -309,7 +310,7 @@ export function VehicleFinancingClient() {
       <UiModal
         open={isFormOpen}
         title={editingId ? "Editar financiamento" : "Novo financiamento/gravame"}
-        description="Selecione cadastros existentes para preencher dados automaticamente. Todos os campos continuam editáveis para ajustes manuais."
+        description="Selecione cadastros existentes para preencher dados automaticamente. Campos enumeráveis usam listas padronizadas para manter a qualidade dos dados."
         onClose={closeForm}
       >
         <form onSubmit={handleSubmit}>
@@ -328,12 +329,12 @@ export function VehicleFinancingClient() {
             <label className={labelClass}>CPF/CNPJ<input value={form.customerDocument} onChange={(event) => updateField("customerDocument", event.target.value)} className={inputClass} /></label>
             <label className={labelClass}>Telefone<input value={form.customerPhone} onChange={(event) => updateField("customerPhone", event.target.value)} className={inputClass} /></label>
             <label className={labelClass}>Vendedor<input value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} className={inputClass} /></label>
-            <label className={labelClass}>Banco financiado<input value={form.financedBank} onChange={(event) => updateField("financedBank", event.target.value)} className={inputClass} /></label>
-            <label className={labelClass}>Marca<input value={form.vehicleBrand} onChange={(event) => updateField("vehicleBrand", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Banco financiado<select value={form.financedBank} onChange={(event) => updateField("financedBank", event.target.value)} className={inputClass}><option value="">Selecionar banco/financeira</option>{financingInstitutions.map((bank) => <option key={bank} value={bank}>{bank}</option>)}</select></label>
+            <label className={labelClass}>Marca<select value={form.vehicleBrand} onChange={(event) => updateField("vehicleBrand", event.target.value)} className={inputClass}><option value="">Selecionar marca</option>{vehicleBrands.map((brand) => <option key={brand} value={brand}>{brand}</option>)}</select></label>
             <label className={labelClass}>Modelo<input value={form.vehicleModel} onChange={(event) => updateField("vehicleModel", event.target.value)} className={inputClass} /></label>
             <label className={labelClass}>Placa<input value={form.vehiclePlate} onChange={(event) => updateField("vehiclePlate", event.target.value.toUpperCase())} className={inputClass} /></label>
             <label className={labelClass}>Chassi<input value={form.vehicleChassis} onChange={(event) => updateField("vehicleChassis", event.target.value.toUpperCase())} className={inputClass} /></label>
-            <label className={labelClass}>Ano<input value={form.vehicleYear} onChange={(event) => updateField("vehicleYear", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Ano<select value={form.vehicleYear} onChange={(event) => updateField("vehicleYear", event.target.value)} className={inputClass}><option value="">Selecionar ano</option>{vehicleYears.map((year) => <option key={year} value={year}>{year}</option>)}</select></label>
             <label className={labelClass}>Contrato<input value={form.contractNumber} onChange={(event) => updateField("contractNumber", event.target.value)} className={inputClass} /></label>
             <label className={labelClass}>Valor solicitado<input value={form.requestedAmount} onChange={(event) => updateField("requestedAmount", event.target.value)} className={inputClass} /></label>
             <label className={labelClass}>Entrada<input value={form.downPaymentAmount} onChange={(event) => updateField("downPaymentAmount", event.target.value)} className={inputClass} /></label>
