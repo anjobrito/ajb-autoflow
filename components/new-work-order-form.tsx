@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { demoCustomers, demoProducts, demoServices, demoVehicles } from "@/lib/demo-data";
-import { currencyToNumber, listCustomers, listEmployees, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredEmployee, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
+import { filterProductsByBusinessProfile, filterServicesByBusinessProfile } from "@/lib/business-domain-options";
+import { getBusinessProfileByLabel } from "@/lib/business-profiles";
+import { currencyToNumber, getCompany, listCustomers, listEmployees, listProducts, listServices, listVehicles, numberToCurrency, saveWorkOrder, StoredCustomer, StoredEmployee, StoredProduct, StoredService, StoredVehicle } from "@/lib/browser-store";
 import { newWorkOrderStatuses } from "@/lib/select-options";
 
 function pct(value: number) {
@@ -28,26 +30,47 @@ export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo
   const [selectedService, setSelectedService] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const [businessType, setBusinessType] = useState("");
+
+  const businessProfile = useMemo(() => getBusinessProfileByLabel(businessType), [businessType]);
+
+  const productOptions = useMemo(() => {
+    const allProducts = [
+      ...products,
+      ...demoProducts.map((product) => ({ ...product, supplier: "Fornecedor demo", costPrice: product.name.includes("Óleo") ? "R$ 30,00" : "R$ 20,00" })),
+    ];
+    return filterProductsByBusinessProfile(allProducts, businessProfile);
+  }, [products, businessProfile]);
+
+  const serviceOptions = useMemo(() => filterServicesByBusinessProfile([...services, ...demoServices], businessProfile), [services, businessProfile]);
 
   useEffect(() => {
     const loadedProducts = listProducts();
     const loadedServices = listServices();
     const loadedEmployees = listEmployees();
+    const profile = getBusinessProfileByLabel(getCompany().businessType);
+    const availableProducts = filterProductsByBusinessProfile([
+      ...loadedProducts,
+      ...demoProducts.map((product) => ({ ...product, supplier: "Fornecedor demo", costPrice: product.name.includes("Óleo") ? "R$ 30,00" : "R$ 20,00" })),
+    ], profile);
+    const availableServices = filterServicesByBusinessProfile([...loadedServices, ...demoServices], profile);
+
+    setBusinessType(getCompany().businessType);
     setCustomers(listCustomers());
     setVehicles(listVehicles());
     setProducts(loadedProducts);
     setServices(loadedServices);
     setEmployees(loadedEmployees);
-    setSelectedProduct(loadedProducts[0]?.name ?? demoProducts[0]?.name ?? "");
-    setSelectedService(loadedServices[0]?.name ?? demoServices[0]?.name ?? "");
+    setSelectedProduct(availableProducts[0]?.name ?? "");
+    setSelectedService(availableServices[0]?.name ?? "");
     setSelectedEmployeeId(loadedEmployees[0]?.id ?? "");
   }, []);
 
-  const productOptions = [
-    ...products,
-    ...demoProducts.map((product) => ({ ...product, supplier: "Fornecedor demo", costPrice: product.name.includes("Óleo") ? "R$ 30,00" : "R$ 20,00" })),
-  ];
-  const serviceOptions = [...services, ...demoServices];
+  useEffect(() => {
+    if (productOptions.length > 0 && !productOptions.some((item) => item.name === selectedProduct)) setSelectedProduct(productOptions[0].name);
+    if (serviceOptions.length > 0 && !serviceOptions.some((item) => item.name === selectedService)) setSelectedService(serviceOptions[0].name);
+  }, [productOptions, serviceOptions, selectedProduct, selectedService]);
+
   const product = productOptions.find((item) => item.name === selectedProduct);
   const service = serviceOptions.find((item) => item.name === selectedService);
   const responsibleEmployee = employees.find((employee) => employee.id === selectedEmployeeId);
@@ -104,7 +127,7 @@ export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo
     <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <div className="rounded-3xl bg-white p-0">
         <h2 className="text-xl font-black text-slate-950">Dados do fluxo operacional</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione cliente, veículo, serviço, produto e status inicial. Campos de domínio usam listas padronizadas.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione cliente, veículo, serviço, produto e status inicial. Produtos e serviços são filtrados pelo perfil {businessProfile.label}.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...customers.map((c) => c.name), ...demoCustomers.map((c) => c.name)].map((item) => <option key={item}>{item}</option>)}</select></label>
