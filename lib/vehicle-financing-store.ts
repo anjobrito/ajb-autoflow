@@ -1,0 +1,133 @@
+export type FinancingStatus = "EM_ANALISE" | "APROVADO" | "CONTRATO_EMITIDO" | "GRAVAME_PENDENTE" | "GRAVAME_REGISTRADO" | "PAGO" | "CANCELADO" | "RECUSADO";
+export type LienStatus = "NAO_INICIADO" | "PENDENTE" | "REGISTRADO" | "BAIXA_SOLICITADA" | "BAIXADO" | "COM_ERRO";
+
+export type StoredVehicleFinancing = {
+  id: string;
+  customerId?: string;
+  vehicleId?: string;
+  sellerId?: string;
+  sellerName: string;
+  date: string;
+  financedBank: string;
+  customerDocument: string;
+  customerName: string;
+  customerPhone: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehiclePlate: string;
+  vehicleChassis: string;
+  vehicleYear: string;
+  contractNumber: string;
+  requestedAmount: string;
+  downPaymentAmount: string;
+  financedAmount: string;
+  returnPercentage: string;
+  returnAmount: string;
+  prestamistaInsuranceAmount: string;
+  branchName: string;
+  financingStatus: FinancingStatus;
+  lienStatus: LienStatus;
+  returnReceived: boolean;
+  notes: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+export type VehicleFinancingDraft = Omit<StoredVehicleFinancing, "id" | "createdAt" | "updatedAt">;
+
+export const financingStatusOptions: { value: FinancingStatus; label: string }[] = [
+  { value: "EM_ANALISE", label: "Em analise" },
+  { value: "APROVADO", label: "Aprovado" },
+  { value: "CONTRATO_EMITIDO", label: "Contrato emitido" },
+  { value: "GRAVAME_PENDENTE", label: "Gravame pendente" },
+  { value: "GRAVAME_REGISTRADO", label: "Gravame registrado" },
+  { value: "PAGO", label: "Pago" },
+  { value: "CANCELADO", label: "Cancelado" },
+  { value: "RECUSADO", label: "Recusado" },
+];
+
+export const lienStatusOptions: { value: LienStatus; label: string }[] = [
+  { value: "NAO_INICIADO", label: "Nao iniciado" },
+  { value: "PENDENTE", label: "Pendente" },
+  { value: "REGISTRADO", label: "Registrado" },
+  { value: "BAIXA_SOLICITADA", label: "Baixa solicitada" },
+  { value: "BAIXADO", label: "Baixado" },
+  { value: "COM_ERRO", label: "Com erro" },
+];
+
+const storageKey = "ajb-autoflow-vehicle-financings";
+
+function readRecords(): StoredVehicleFinancing[] {
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(storageKey);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as StoredVehicleFinancing[];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecords(records: StoredVehicleFinancing[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(storageKey, JSON.stringify(records));
+}
+
+export function createEmptyVehicleFinancingDraft(): VehicleFinancingDraft {
+  return {
+    sellerName: "",
+    date: new Date().toISOString().slice(0, 10),
+    financedBank: "",
+    customerDocument: "",
+    customerName: "",
+    customerPhone: "",
+    vehicleBrand: "",
+    vehicleModel: "",
+    vehiclePlate: "",
+    vehicleChassis: "",
+    vehicleYear: "",
+    contractNumber: "",
+    requestedAmount: "R$ 0,00",
+    downPaymentAmount: "R$ 0,00",
+    financedAmount: "R$ 0,00",
+    returnPercentage: "0%",
+    returnAmount: "R$ 0,00",
+    prestamistaInsuranceAmount: "R$ 0,00",
+    branchName: "Matriz",
+    financingStatus: "EM_ANALISE",
+    lienStatus: "NAO_INICIADO",
+    returnReceived: false,
+    notes: "",
+  };
+}
+
+export function listVehicleFinancings() {
+  return readRecords();
+}
+
+export function saveVehicleFinancing(financing: VehicleFinancingDraft) {
+  const timestamp = new Date().toISOString();
+  const record: StoredVehicleFinancing = { ...financing, id: crypto.randomUUID(), createdAt: timestamp, updatedAt: timestamp };
+  writeRecords([record, ...readRecords()]);
+  return record;
+}
+
+export function updateVehicleFinancing(id: string, financing: VehicleFinancingDraft) {
+  const updated = readRecords().map((item) => item.id === id ? { ...item, ...financing, updatedAt: new Date().toISOString() } : item);
+  writeRecords(updated);
+  return updated.find((item) => item.id === id);
+}
+
+export function deleteVehicleFinancing(id: string) {
+  const updated = readRecords().filter((item) => item.id !== id);
+  writeRecords(updated);
+  return updated;
+}
+
+export function getFinancingStatusLabel(status: string) {
+  return financingStatusOptions.find((item) => item.value === status)?.label ?? status;
+}
+
+export function getLienStatusLabel(status: string) {
+  return lienStatusOptions.find((item) => item.value === status)?.label ?? status;
+}
