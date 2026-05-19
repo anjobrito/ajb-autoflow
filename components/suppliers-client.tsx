@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { UiModal } from "@/components/ui-modal";
 import { listSuppliers, saveSupplier, StoredSupplier } from "@/lib/browser-store";
-import { brazilianStates, commonCities } from "@/lib/select-options";
+import { brazilianStates, getCitiesByState } from "@/lib/select-options";
 
 const inputClass = "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white";
 const labelClass = "grid gap-2 text-sm font-bold text-slate-700";
@@ -18,6 +18,8 @@ export function SuppliersClient() {
   const [suppliers, setSuppliers] = useState<StoredSupplier[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [selectedState, setSelectedState] = useState("SP");
+  const cities = getCitiesByState(selectedState);
 
   function refresh() {
     setSuppliers(listSuppliers());
@@ -42,6 +44,7 @@ export function SuppliersClient() {
     });
 
     form.reset();
+    setSelectedState("SP");
     refresh();
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
@@ -73,20 +76,12 @@ export function SuppliersClient() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[840px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                {['Fornecedor', 'CNPJ', 'Telefone', 'E-mail', 'Cidade'].map((column) => (
-                  <th key={column} className="px-5 py-4 font-black">{column}</th>
-                ))}
-              </tr>
+              <tr>{["Fornecedor", "CNPJ", "Telefone", "E-mail", "Cidade"].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row, rowIndex) => (
                 <tr key={`${row[0]}-${rowIndex}`} className="hover:bg-slate-50">
-                  {row.map((cell, cellIndex) => (
-                    <td key={`${rowIndex}-${cellIndex}`} className="px-5 py-4 text-slate-700">
-                      {cellIndex === 0 ? <span className="font-black text-slate-950">{cell}</span> : cell}
-                    </td>
-                  ))}
+                  {row.map((cell, cellIndex) => <td key={`${rowIndex}-${cellIndex}`} className="px-5 py-4 text-slate-700">{cellIndex === 0 ? <span className="font-black text-slate-950">{cell}</span> : cell}</td>)}
                 </tr>
               ))}
             </tbody>
@@ -101,8 +96,8 @@ export function SuppliersClient() {
             <label className={labelClass}>CNPJ<input name="document" required inputMode="numeric" placeholder="Ex: 12.111.222/0001-33" className={inputClass} /></label>
             <label className={labelClass}>Telefone<input name="phone" required inputMode="tel" placeholder="Ex: (19) 3333-1000" className={inputClass} /></label>
             <label className={labelClass}>E-mail<input name="email" required type="email" placeholder="Ex: vendas@fornecedor.com" className={inputClass} /></label>
-            <label className={labelClass}>Cidade<select name="city" className={inputClass}>{commonCities.map((city) => <option key={city}>{city}</option>)}</select></label>
-            <label className={labelClass}>UF<select name="state" defaultValue="SP" className={inputClass}>{brazilianStates.map((state) => <option key={state}>{state}</option>)}</select></label>
+            <label className={labelClass}>UF<select name="state" value={selectedState} onChange={(event) => setSelectedState(event.target.value)} className={inputClass}>{brazilianStates.map((state) => <option key={state}>{state}</option>)}</select></label>
+            <label className={labelClass}>Cidade<select name="city" className={inputClass}>{cities.map((city) => <option key={city}>{city}</option>)}</select></label>
           </div>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setIsFormOpen(false)} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
