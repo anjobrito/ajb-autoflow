@@ -8,9 +8,7 @@ export default function FuncionariosPage() {
       <PageHeader
         eyebrow="Equipe operacional e comercial"
         title="Funcionários"
-        description="Cadastre a equipe da oficina, lava-jato, estética automotiva ou centro automotivo para apoiar operação, atendimento e futuras comissões."
-        actionLabel="Cadastrar primeiro funcionário"
-        actionHref="/funcionarios/novo"
+        description="Cadastre a equipe da empresa para apoiar operação, atendimento e futuras comissões."
       />
       <EmployeesClient />
     </AppShell>
