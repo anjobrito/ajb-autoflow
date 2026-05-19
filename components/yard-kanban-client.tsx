@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DragEvent, useEffect, useMemo, useState } from "react";
 import { Car, Clock, ClipboardList, Move } from "lucide-react";
 import { getCompany, listWorkOrders, StoredWorkOrder, updateWorkOrderStatus } from "@/lib/browser-store";
+import { filterWorkOrdersByBusinessProfile } from "@/lib/business-profile-work-orders";
 import { BusinessProfile, getBusinessProfileByLabel } from "@/lib/business-types";
 
 type KanbanCard = {
@@ -104,7 +105,7 @@ export function YardKanbanClient() {
     const company = getCompany();
     const profile = getBusinessProfileByLabel(company.businessType || "Completo / Multioperação");
     setBusinessType(profile.label);
-    const stored = listWorkOrders().map(normalizeOrder);
+    const stored = filterWorkOrdersByBusinessProfile(listWorkOrders(), profile).map(normalizeOrder);
     setOrders(stored.length > 0 ? stored : buildDemoCards(profile));
   }
 
