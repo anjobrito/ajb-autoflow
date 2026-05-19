@@ -4,13 +4,81 @@ import Link from "next/link";
 import { Bell, Car, ClipboardList, Package, Users, Wrench } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getCompany, getDashboardStats, listWorkOrders, StoredWorkOrder } from "@/lib/browser-store";
-import { getBusinessProfileByLabel } from "@/lib/business-types";
+import { BusinessProfile, getBusinessProfileByLabel } from "@/lib/business-types";
 
-const fallbackOrders = [
-  ["OS-1024", "João Pereira", "Honda Civic", "Em andamento"],
-  ["OS-1025", "Maria Souza", "Fiat Argo", "Aguardando peça"],
-  ["OS-1026", "Carlos Lima", "VW Gol", "Pronta para retirada"],
-];
+type DashboardFallbackRow = [string, string, string, string];
+
+const fallbackOrdersByProfile: Record<BusinessProfile["id"], DashboardFallbackRow[]> = {
+  COMPLETO: [
+    ["OP-1024", "João Pereira", "Honda Civic", "Em atendimento"],
+    ["OP-1025", "Maria Souza", "Fiat Argo", "Aguardando"],
+    ["OP-1026", "Carlos Lima", "VW Gol", "Pronto"],
+  ],
+  OFICINA: [
+    ["OS-1024", "João Pereira", "Honda Civic", "Em andamento"],
+    ["OS-1025", "Maria Souza", "Fiat Argo", "Aguardando peça"],
+    ["OS-1026", "Carlos Lima", "VW Gol", "Pronta para retirada"],
+  ],
+  LAVA_JATO: [
+    ["LAV-1024", "João Pereira", "Honda Civic", "Em lavagem"],
+    ["LAV-1025", "Maria Souza", "Fiat Argo", "Acabamento"],
+    ["LAV-1026", "Carlos Lima", "VW Gol", "Pronto"],
+  ],
+  ESTETICA: [
+    ["EST-1024", "João Pereira", "Honda Civic", "Em execução"],
+    ["EST-1025", "Maria Souza", "Fiat Argo", "Cura/secagem"],
+    ["EST-1026", "Carlos Lima", "VW Gol", "Revisão final"],
+  ],
+  CENTRO_AUTOMOTIVO: [
+    ["OA-1024", "João Pereira", "Honda Civic", "Diagnóstico"],
+    ["OA-1025", "Maria Souza", "Fiat Argo", "Em execução"],
+    ["OA-1026", "Carlos Lima", "VW Gol", "Controle de qualidade"],
+  ],
+  ESTACIONAMENTO: [
+    ["MOV-1024", "João Pereira", "Honda Civic", "Estacionado"],
+    ["MOV-1025", "Maria Souza", "Fiat Argo", "Mensalista"],
+    ["MOV-1026", "Carlos Lima", "VW Gol", "Pagamento pendente"],
+  ],
+  REVENDEDORA: [
+    ["PV-1024", "João Pereira", "Honda Civic", "Preparação"],
+    ["PV-1025", "Maria Souza", "Fiat Argo", "Em negociação"],
+    ["PV-1026", "Carlos Lima", "VW Gol", "Documentação"],
+  ],
+  AUTOPECAS: [
+    ["PED-1024", "João Pereira", "Pedido balcão", "Separação"],
+    ["PED-1025", "Maria Souza", "Entrega local", "Aguardando pagamento"],
+    ["PED-1026", "Carlos Lima", "Pedido online", "Faturado"],
+  ],
+};
+
+function getFallbackOrders(profile: BusinessProfile) {
+  return fallbackOrdersByProfile[profile.id] ?? fallbackOrdersByProfile.COMPLETO;
+}
+
+function getInventoryCardLabel(profile: BusinessProfile) {
+  if (profile.id === "REVENDEDORA") return "Veículos no estoque";
+  if (profile.id === "AUTOPECAS") return "Itens no estoque";
+  if (profile.id === "LAVA_JATO" || profile.id === "ESTETICA") return "Produtos operacionais";
+  if (profile.id === "ESTACIONAMENTO") return "Itens operacionais";
+  return "Itens no estoque";
+}
+
+function getReadySummaryLabel(profile: BusinessProfile) {
+  if (profile.id === "LAVA_JATO") return "atendimentos prontos no fluxo";
+  if (profile.id === "ESTETICA") return "atendimentos estéticos prontos no fluxo";
+  if (profile.id === "REVENDEDORA") return "processos de venda prontos no fluxo";
+  if (profile.id === "ESTACIONAMENTO") return "movimentações finalizadas no fluxo";
+  if (profile.id === "AUTOPECAS") return "pedidos prontos no fluxo";
+  return "itens prontos no fluxo";
+}
+
+function getStockSummaryLabel(profile: BusinessProfile) {
+  if (profile.id === "LAVA_JATO" || profile.id === "ESTETICA") return "produtos operacionais em estoque baixo";
+  if (profile.id === "REVENDEDORA") return "custos/itens operacionais em atenção";
+  if (profile.id === "ESTACIONAMENTO") return "itens operacionais em atenção";
+  if (profile.id === "AUTOPECAS") return "itens em estoque baixo";
+  return "itens em estoque baixo";
+}
 
 export function DashboardClient() {
   const [businessType, setBusinessType] = useState("Completo / Multioperação");
@@ -40,7 +108,7 @@ export function DashboardClient() {
     { label: profile.dashboardCards[0] ?? profile.operationPluralLabel, value: String(stats.workOrders), icon: ClipboardList },
     { label: "Clientes", value: String(stats.customers), icon: Users },
     { label: "Veículos", value: String(stats.vehicles), icon: Car },
-    { label: profile.id === "REVENDEDORA" ? "Veículos no estoque" : profile.id === "AUTOPECAS" ? "Itens no estoque" : "Itens no estoque", value: String(stats.products), icon: Package },
+    { label: getInventoryCardLabel(profile), value: String(stats.products), icon: Package },
   ];
 
   return (
@@ -77,7 +145,7 @@ export function DashboardClient() {
                 <p className="text-slate-600">{order.vehicle}</p>
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-center text-xs font-bold text-blue-700">{order.status}</span>
               </Link>
-            )) : fallbackOrders.map(([code, customer, vehicle, status]) => (
+            )) : getFallbackOrders(profile).map(([code, customer, vehicle, status]) => (
               <div key={code} className="grid gap-2 rounded-2xl border border-slate-200 p-4 sm:grid-cols-[120px_1fr_1fr_180px] sm:items-center">
                 <p className="font-black">{code}</p>
                 <p>{customer}</p>
@@ -104,7 +172,7 @@ export function DashboardClient() {
                 <span key={card} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">{card}</span>
               ))}
             </div>
-            <p className="mt-4 text-sm text-slate-600">{stats.readyWorkOrders} itens prontos no fluxo e {stats.lowStock} itens em estoque baixo.</p>
+            <p className="mt-4 text-sm text-slate-600">{stats.readyWorkOrders} {getReadySummaryLabel(profile)} e {stats.lowStock} {getStockSummaryLabel(profile)}.</p>
           </div>
         </div>
       </div>
