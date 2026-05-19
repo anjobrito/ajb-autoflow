@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getCompany, saveCompany, StoredCompany } from "@/lib/browser-store";
-import { businessTypes } from "@/lib/business-types";
+import { businessTypes, getBusinessProfileByLabel } from "@/lib/business-types";
 import { brazilianStates, commonCities } from "@/lib/select-options";
 
 function Input({ label, name, value, onChange }: { label: string; name: keyof StoredCompany; value: string; onChange: (name: keyof StoredCompany, value: string) => void }) {
@@ -33,7 +33,7 @@ export function CompanyClient() {
     const loaded = getCompany();
     setCompany({
       ...loaded,
-      businessType: businessTypes.includes(loaded.businessType as typeof businessTypes[number]) ? loaded.businessType : "Oficina mecânica",
+      businessType: businessTypes.includes(loaded.businessType as typeof businessTypes[number]) ? loaded.businessType : "Completo / Multioperação",
       city: commonCities.includes(loaded.city as typeof commonCities[number]) ? loaded.city : "Outra",
       state: brazilianStates.includes(loaded.state as typeof brazilianStates[number]) ? loaded.state : "SP",
     });
@@ -47,9 +47,12 @@ export function CompanyClient() {
     event.preventDefault();
     if (!company) return;
     saveCompany(company);
+    window.dispatchEvent(new Event("ajb-company-updated"));
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
   }
+
+  const selectedProfile = useMemo(() => getBusinessProfileByLabel(company?.businessType), [company?.businessType]);
 
   if (!company) return <div className="rounded-3xl bg-white p-6 shadow-sm">Carregando dados da empresa...</div>;
 
@@ -57,7 +60,7 @@ export function CompanyClient() {
     ["Nome fantasia", company.tradeName],
     ["Razão social", company.legalName],
     ["CNPJ", company.cnpj],
-    ["Tipo de negócio", company.businessType],
+    ["Perfil de negócio", selectedProfile.label],
     ["Cidade/UF", `${company.city}/${company.state}`],
     ["Contato", `${company.phone} • ${company.email}`],
   ];
@@ -66,17 +69,29 @@ export function CompanyClient() {
     <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-950">Configuração da empresa</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha valores padronizados para o sistema adaptar módulos, lembretes e linguagem operacional.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha o perfil de negócio para o sistema adaptar menus, módulos e linguagem operacional ao universo da empresa.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Input label="Nome fantasia" name="tradeName" value={company.tradeName} onChange={updateField} />
           <Input label="Razão social" name="legalName" value={company.legalName} onChange={updateField} />
           <Input label="CNPJ" name="cnpj" value={company.cnpj} onChange={updateField} />
-          <SelectField label="Tipo de negócio" value={company.businessType} options={businessTypes} onChange={(value) => updateField("businessType", value)} />
+          <SelectField label="Perfil de negócio" value={company.businessType} options={businessTypes} onChange={(value) => updateField("businessType", value)} />
           <SelectField label="Cidade" value={company.city} options={commonCities} onChange={(value) => updateField("city", value)} />
           <SelectField label="Estado" value={company.state} options={brazilianStates} onChange={(value) => updateField("state", value)} />
           <Input label="Telefone" name="phone" value={company.phone} onChange={updateField} />
           <Input label="E-mail" name="email" value={company.email} onChange={updateField} />
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-blue-100 bg-blue-50 p-5">
+          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Universo operacional</p>
+          <h3 className="mt-1 text-lg font-black text-slate-950">{selectedProfile.label}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{selectedProfile.description}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selectedProfile.modules.map((module) => (
+              <span key={module} className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm">{module}</span>
+            ))}
+          </div>
+          <p className="mt-4 text-xs font-semibold text-slate-500">Nesta fase o perfil oculta módulos não prioritários no menu. O bloqueio real de rotas será tratado futuramente com autenticação e permissões.</p>
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3">
