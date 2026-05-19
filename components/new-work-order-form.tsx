@@ -10,7 +10,13 @@ function pct(value: number) {
   return `${value.toFixed(1).replace(".", ",")}%`;
 }
 
-export function NewWorkOrderForm() {
+type NewWorkOrderFormProps = {
+  onSaved?: () => void;
+  onCancel?: () => void;
+  submitLabel?: string;
+};
+
+export function NewWorkOrderForm({ onSaved, onCancel, submitLabel = "Criar fluxo operacional" }: NewWorkOrderFormProps) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [customers, setCustomers] = useState<StoredCustomer[]>([]);
@@ -26,13 +32,15 @@ export function NewWorkOrderForm() {
   useEffect(() => {
     const loadedProducts = listProducts();
     const loadedServices = listServices();
+    const loadedEmployees = listEmployees();
     setCustomers(listCustomers());
     setVehicles(listVehicles());
     setProducts(loadedProducts);
     setServices(loadedServices);
-    setEmployees(listEmployees());
+    setEmployees(loadedEmployees);
     setSelectedProduct(loadedProducts[0]?.name ?? demoProducts[0]?.name ?? "");
     setSelectedService(loadedServices[0]?.name ?? demoServices[0]?.name ?? "");
+    setSelectedEmployeeId(loadedEmployees[0]?.id ?? "");
   }, []);
 
   const productOptions = [
@@ -57,7 +65,8 @@ export function NewWorkOrderForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
     const record = saveWorkOrder({
       customer: String(formData.get("customer") ?? ""),
@@ -80,30 +89,39 @@ export function NewWorkOrderForm() {
     });
 
     setSaved(true);
+
+    if (onSaved) {
+      form.reset();
+      onSaved();
+      setSaved(false);
+      return;
+    }
+
     setTimeout(() => router.push(`/ordens-servico/${record.id}`), 700);
   }
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1fr_360px]">
-      <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-black text-slate-950">Dados da OS</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione produto e serviço para calcular total, lucro estimado e margem.</p>
+      <div className="rounded-3xl bg-white p-0">
+        <h2 className="text-xl font-black text-slate-950">Dados do fluxo operacional</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Selecione cliente, veículo, serviço, produto e status inicial. Campos de domínio usam listas padronizadas.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-bold text-slate-700">Cliente<select required name="customer" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...customers.map((c) => c.name), ...demoCustomers.map((c) => c.name)].map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Veículo<select required name="vehicle" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{[...vehicles.map((v) => `${v.plate} - ${v.brand} ${v.model}`.trim()), ...demoVehicles.map((v) => `${v.plate} - ${v.model}`)].map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Serviço<select value={selectedService} onChange={(event) => setSelectedService(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{serviceOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Produto / peça<select value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{productOptions.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Quantidade da peça<input required value={quantity} onChange={(event) => setQuantity(event.target.value)} inputMode="numeric" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" /></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Status<select required name="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white">{newWorkOrderStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="grid gap-2 text-sm font-bold text-slate-700">Responsável<select value={selectedEmployeeId} onChange={(event) => setSelectedEmployeeId(event.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white"><option value="">Sem responsável definido</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>
         </div>
 
-        <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o problema, serviço solicitado ou orientação ao mecânico." /></label>
+        <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700"><span>Observações</span><textarea name="notes" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white" placeholder="Descreva o serviço solicitado, orientação operacional ou observação para a equipe." /></label>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
-          {saved ? <span className="text-sm font-bold text-emerald-700">OS criada!</span> : null}
-          <button className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">Criar ordem de serviço</button>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          {saved ? <span className="text-sm font-bold text-emerald-700">Fluxo criado!</span> : null}
+          {onCancel ? <button type="button" onClick={onCancel} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button> : null}
+          <button className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">{submitLabel}</button>
         </div>
       </div>
 

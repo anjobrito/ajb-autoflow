@@ -9,8 +9,6 @@ export default function ComissoesPage() {
         eyebrow="Comissões preparatórias"
         title="Comissões"
         description="Prepare regras comerciais por funcionário, serviço, peça/produto e lavagem para evoluir remuneração variável sem alterar o financeiro geral do MVP."
-        actionLabel="Cadastrar primeira comissão"
-        actionHref="/comissoes/nova"
       />
       <CommissionsClient />
     </AppShell>

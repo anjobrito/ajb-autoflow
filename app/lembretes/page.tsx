@@ -9,8 +9,6 @@ export default function LembretesPage() {
         eyebrow="Cliente voltando"
         title="Lembretes inteligentes"
         description="A tela muda conforme o tipo de negócio: oficina, lava-jato, estética ou autopeças."
-        actionLabel="Novo lembrete"
-        actionHref="/lembretes/novo"
       />
       <RemindersClient />
     </AppShell>

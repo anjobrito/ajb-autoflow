@@ -9,8 +9,6 @@ export default function ServicosPage() {
         eyebrow="Tabela de serviços"
         title="Serviços"
         description="Cadastre serviços de oficina, lava-jato, estética automotiva e centros automotivos."
-        actionLabel="Novo serviço"
-        actionHref="/servicos/novo"
       />
       <ServicesClient />
     </AppShell>

@@ -9,8 +9,6 @@ export default function VeiculosPage() {
         eyebrow="Histórico por placa"
         title="Veículos"
         description="Controle veículos atendidos, quilometragem, cliente responsável e próximos lembretes."
-        actionLabel="Novo veículo"
-        actionHref="/veiculos/novo"
       />
       <VehiclesClient />
     </AppShell>

@@ -9,8 +9,6 @@ export default function FornecedoresPage() {
         eyebrow="Compras e margem"
         title="Fornecedores"
         description="Cadastre fornecedores de peças, óleos, produtos e insumos para controlar custo e lucro."
-        actionLabel="Novo fornecedor"
-        actionHref="/fornecedores/novo"
       />
       <SuppliersClient />
     </AppShell>
