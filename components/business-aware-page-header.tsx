@@ -6,7 +6,7 @@ import { getCompany } from "@/lib/browser-store";
 import { getBusinessProfileByLabel } from "@/lib/business-types";
 
 type BusinessAwarePageHeaderProps = {
-  context: "dashboard" | "operations";
+  context: "dashboard" | "operations" | "yard";
 };
 
 export function BusinessAwarePageHeader({ context }: BusinessAwarePageHeaderProps) {
@@ -29,13 +29,16 @@ export function BusinessAwarePageHeader({ context }: BusinessAwarePageHeaderProp
 
   const profile = useMemo(() => getBusinessProfileByLabel(businessType), [businessType]);
   const isDashboard = context === "dashboard";
+  const isYard = context === "yard";
 
-  const title = isDashboard ? `Dashboard ${profile.label}` : profile.operationPluralLabel;
-  const eyebrow = isDashboard ? "Visão executiva adaptativa" : profile.kanbanLabel;
+  const title = isDashboard ? `Dashboard ${profile.label}` : isYard ? profile.kanbanLabel : profile.operationPluralLabel;
+  const eyebrow = isDashboard ? "Visão executiva adaptativa" : isYard ? "Pátio operacional" : profile.kanbanLabel;
   const description = isDashboard
     ? `Acompanhe os principais indicadores para o universo operacional de ${profile.label}: ${profile.dashboardCards.slice(0, 3).join(", ")}.`
-    : `Gerencie ${profile.operationPluralLabel.toLowerCase()} usando o fluxo sugerido para ${profile.label}: ${profile.kanbanStatuses.join(" → ")}.`;
-  const actionLabel = isDashboard ? `Novo ${profile.operationLabel}` : `Novo ${profile.operationLabel}`;
+    : isYard
+      ? `Acompanhe visualmente ${profile.operationPluralLabel.toLowerCase()} no fluxo de ${profile.label}: ${profile.kanbanStatuses.join(" → ")}.`
+      : `Gerencie ${profile.operationPluralLabel.toLowerCase()} usando o fluxo sugerido para ${profile.label}: ${profile.kanbanStatuses.join(" → ")}.`;
+  const actionLabel = `Novo ${profile.operationLabel}`;
 
   return (
     <header className="rounded-3xl bg-white p-6 shadow-sm">
