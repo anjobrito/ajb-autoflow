@@ -8,9 +8,7 @@ export default function ClientesPage() {
       <PageHeader
         eyebrow="CRM operacional"
         title="Clientes"
-        description="Cadastre os clientes da oficina ou lava-jato e acompanhe veículos, contatos e histórico."
-        actionLabel="Novo cliente"
-        actionHref="/clientes/novo"
+        description="Cadastre os clientes da empresa e acompanhe veículos, contatos e histórico."
       />
       <CustomersClient />
     </AppShell>
