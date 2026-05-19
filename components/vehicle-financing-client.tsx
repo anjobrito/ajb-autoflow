@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Banknote, Car, FileText, Pencil, Search, ShieldCheck, Trash2, Users } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, Banknote, Car, FileText, Pencil, Plus, Search, ShieldCheck, Trash2, Users } from "lucide-react";
 import { currencyToNumber, listCustomers, listEmployees, listVehicles, numberToCurrency, StoredCustomer, StoredEmployee, StoredVehicle } from "@/lib/browser-store";
+import { UiModal } from "@/components/ui-modal";
 import {
   createEmptyVehicleFinancingDraft,
   deleteVehicleFinancing,
@@ -75,6 +76,7 @@ export function VehicleFinancingClient() {
   const [employees, setEmployees] = useState<StoredEmployee[]>([]);
   const [form, setForm] = useState<VehicleFinancingDraft>(() => createEmptyVehicleFinancingDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [financingStatusFilter, setFinancingStatusFilter] = useState("TODOS");
   const [lienStatusFilter, setLienStatusFilter] = useState("TODOS");
@@ -99,6 +101,16 @@ export function VehicleFinancingClient() {
   function resetForm() {
     setForm(createEmptyVehicleFinancingDraft());
     setEditingId(null);
+  }
+
+  function openNewForm() {
+    resetForm();
+    setIsFormOpen(true);
+  }
+
+  function closeForm() {
+    resetForm();
+    setIsFormOpen(false);
   }
 
   function handleCustomerSelect(customerId: string) {
@@ -149,26 +161,26 @@ export function VehicleFinancingClient() {
     }));
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (editingId) updateVehicleFinancing(editingId, form);
     else saveVehicleFinancing(form);
     refresh();
-    resetForm();
+    closeForm();
   }
 
   function handleEdit(record: StoredVehicleFinancing) {
     const { id, createdAt, updatedAt, ...draft } = record;
     setEditingId(id);
     setForm(draft);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsFormOpen(true);
   }
 
   function handleDelete(id: string) {
     if (!window.confirm("Deseja excluir este financiamento/gravame?")) return;
     deleteVehicleFinancing(id);
     refresh();
-    if (editingId === id) resetForm();
+    if (editingId === id) closeForm();
   }
 
   const filteredRecords = useMemo(() => records.filter((record) => {
@@ -208,6 +220,18 @@ export function VehicleFinancingClient() {
 
   return (
     <div className="grid gap-6">
+      <div className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Revenda</p>
+          <h2 className="mt-1 text-2xl font-black">Financiamentos e Gravames</h2>
+          <p className="mt-2 text-sm text-slate-600">Acompanhe contratos, vínculos com cadastros, pendências e status sem poluir a tela principal com formulários extensos.</p>
+        </div>
+        <button type="button" onClick={openNewForm} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-sm font-black text-white hover:bg-blue-700">
+          <Plus className="h-4 w-4" />
+          Novo financiamento
+        </button>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -246,58 +270,6 @@ export function VehicleFinancingClient() {
         </section>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastro integrado</p>
-            <h2 className="mt-1 text-2xl font-black">{editingId ? "Editar financiamento" : "Novo financiamento/gravame"}</h2>
-            <p className="mt-2 text-sm text-slate-600">Selecione cadastros existentes para preencher dados automaticamente, mantendo os campos editáveis para ajustes manuais.</p>
-          </div>
-          <button type="button" onClick={resetForm} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Limpar</button>
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastros existentes</p>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <label className={labelClass}>Cliente existente<select value={form.customerId ?? ""} onChange={(event) => handleCustomerSelect(event.target.value)} className={inputClass}><option value="">Selecionar cliente</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} • {customer.document}</option>)}</select></label>
-            <label className={labelClass}>Veiculo existente<select value={form.vehicleId ?? ""} onChange={(event) => handleVehicleSelect(event.target.value)} className={inputClass}><option value="">Selecionar veiculo</option>{vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.plate} • {vehicle.brand} {vehicle.model}</option>)}</select></label>
-            <label className={labelClass}>Vendedor existente<select value={form.sellerId ?? ""} onChange={(event) => handleSellerSelect(event.target.value)} className={inputClass}><option value="">Selecionar vendedor</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name} • {employee.role}</option>)}</select></label>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <label className={labelClass}>Data<input type="date" value={form.date} onChange={(event) => updateField("date", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Cliente<input value={form.customerName} onChange={(event) => updateField("customerName", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>CPF/CNPJ<input value={form.customerDocument} onChange={(event) => updateField("customerDocument", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Telefone<input value={form.customerPhone} onChange={(event) => updateField("customerPhone", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Vendedor<input value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Banco financiado<input value={form.financedBank} onChange={(event) => updateField("financedBank", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Marca<input value={form.vehicleBrand} onChange={(event) => updateField("vehicleBrand", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Modelo<input value={form.vehicleModel} onChange={(event) => updateField("vehicleModel", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Placa<input value={form.vehiclePlate} onChange={(event) => updateField("vehiclePlate", event.target.value.toUpperCase())} className={inputClass} /></label>
-          <label className={labelClass}>Chassi<input value={form.vehicleChassis} onChange={(event) => updateField("vehicleChassis", event.target.value.toUpperCase())} className={inputClass} /></label>
-          <label className={labelClass}>Ano<input value={form.vehicleYear} onChange={(event) => updateField("vehicleYear", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Contrato<input value={form.contractNumber} onChange={(event) => updateField("contractNumber", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Valor solicitado<input value={form.requestedAmount} onChange={(event) => updateField("requestedAmount", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Entrada<input value={form.downPaymentAmount} onChange={(event) => updateField("downPaymentAmount", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Valor financiado<input value={form.financedAmount} onChange={(event) => updateField("financedAmount", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>% retorno<input value={form.returnPercentage} onChange={(event) => updateField("returnPercentage", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Valor retorno<input value={form.returnAmount} onChange={(event) => updateField("returnAmount", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Seguro prestamista<input value={form.prestamistaInsuranceAmount} onChange={(event) => updateField("prestamistaInsuranceAmount", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Filial<input value={form.branchName} onChange={(event) => updateField("branchName", event.target.value)} className={inputClass} /></label>
-          <label className={labelClass}>Status financiamento<select value={form.financingStatus} onChange={(event) => updateField("financingStatus", event.target.value as VehicleFinancingDraft["financingStatus"])} className={inputClass}>{financingStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-          <label className={labelClass}>Status gravame<select value={form.lienStatus} onChange={(event) => updateField("lienStatus", event.target.value as VehicleFinancingDraft["lienStatus"])} className={inputClass}>{lienStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-700"><input type="checkbox" checked={form.returnReceived} onChange={(event) => updateField("returnReceived", event.target.checked)} />Retorno recebido</label>
-        </div>
-
-        <label className={`${labelClass} mt-4`}>Observacoes<textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} className={`${inputClass} min-h-24`} /></label>
-
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <button type="submit" className="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-black text-white hover:bg-blue-700">{editingId ? "Salvar alteracoes" : "Cadastrar financiamento"}</button>
-          {editingId ? <button type="button" onClick={resetForm} className="rounded-2xl border border-slate-300 px-6 py-4 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar edicao</button> : null}
-        </div>
-      </form>
-
       <div className="rounded-3xl bg-white p-6 shadow-sm">
         <div className="grid gap-4 xl:grid-cols-[1fr_900px] xl:items-end">
           <div>
@@ -333,6 +305,57 @@ export function VehicleFinancingClient() {
           </table>
         </div>
       </div>
+
+      <UiModal
+        open={isFormOpen}
+        title={editingId ? "Editar financiamento" : "Novo financiamento/gravame"}
+        description="Selecione cadastros existentes para preencher dados automaticamente. Todos os campos continuam editáveis para ajustes manuais."
+        onClose={closeForm}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastros existentes</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <label className={labelClass}>Cliente existente<select value={form.customerId ?? ""} onChange={(event) => handleCustomerSelect(event.target.value)} className={inputClass}><option value="">Selecionar cliente</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} • {customer.document}</option>)}</select></label>
+              <label className={labelClass}>Veiculo existente<select value={form.vehicleId ?? ""} onChange={(event) => handleVehicleSelect(event.target.value)} className={inputClass}><option value="">Selecionar veiculo</option>{vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.plate} • {vehicle.brand} {vehicle.model}</option>)}</select></label>
+              <label className={labelClass}>Vendedor existente<select value={form.sellerId ?? ""} onChange={(event) => handleSellerSelect(event.target.value)} className={inputClass}><option value="">Selecionar vendedor</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name} • {employee.role}</option>)}</select></label>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <label className={labelClass}>Data<input type="date" value={form.date} onChange={(event) => updateField("date", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Cliente<input value={form.customerName} onChange={(event) => updateField("customerName", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>CPF/CNPJ<input value={form.customerDocument} onChange={(event) => updateField("customerDocument", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Telefone<input value={form.customerPhone} onChange={(event) => updateField("customerPhone", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Vendedor<input value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Banco financiado<input value={form.financedBank} onChange={(event) => updateField("financedBank", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Marca<input value={form.vehicleBrand} onChange={(event) => updateField("vehicleBrand", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Modelo<input value={form.vehicleModel} onChange={(event) => updateField("vehicleModel", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Placa<input value={form.vehiclePlate} onChange={(event) => updateField("vehiclePlate", event.target.value.toUpperCase())} className={inputClass} /></label>
+            <label className={labelClass}>Chassi<input value={form.vehicleChassis} onChange={(event) => updateField("vehicleChassis", event.target.value.toUpperCase())} className={inputClass} /></label>
+            <label className={labelClass}>Ano<input value={form.vehicleYear} onChange={(event) => updateField("vehicleYear", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Contrato<input value={form.contractNumber} onChange={(event) => updateField("contractNumber", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Valor solicitado<input value={form.requestedAmount} onChange={(event) => updateField("requestedAmount", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Entrada<input value={form.downPaymentAmount} onChange={(event) => updateField("downPaymentAmount", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Valor financiado<input value={form.financedAmount} onChange={(event) => updateField("financedAmount", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>% retorno<input value={form.returnPercentage} onChange={(event) => updateField("returnPercentage", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Valor retorno<input value={form.returnAmount} onChange={(event) => updateField("returnAmount", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Seguro prestamista<input value={form.prestamistaInsuranceAmount} onChange={(event) => updateField("prestamistaInsuranceAmount", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Filial<input value={form.branchName} onChange={(event) => updateField("branchName", event.target.value)} className={inputClass} /></label>
+            <label className={labelClass}>Status financiamento<select value={form.financingStatus} onChange={(event) => updateField("financingStatus", event.target.value as VehicleFinancingDraft["financingStatus"])} className={inputClass}>{financingStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label className={labelClass}>Status gravame<select value={form.lienStatus} onChange={(event) => updateField("lienStatus", event.target.value as VehicleFinancingDraft["lienStatus"])} className={inputClass}>{lienStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-700"><input type="checkbox" checked={form.returnReceived} onChange={(event) => updateField("returnReceived", event.target.checked)} />Retorno recebido</label>
+          </div>
+
+          <label className={`${labelClass} mt-4`}>Observacoes<textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} className={`${inputClass} min-h-24`} /></label>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button type="button" onClick={closeForm} className="rounded-2xl border border-slate-300 px-6 py-4 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
+            <button type="button" onClick={resetForm} className="rounded-2xl border border-slate-300 px-6 py-4 text-sm font-black text-slate-700 hover:bg-slate-50">Limpar campos</button>
+            <button type="submit" className="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-black text-white hover:bg-blue-700">{editingId ? "Salvar alteracoes" : "Cadastrar financiamento"}</button>
+          </div>
+        </form>
+      </UiModal>
     </div>
   );
 }
