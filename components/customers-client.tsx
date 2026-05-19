@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { UiModal } from "@/components/ui-modal";
 import { demoCustomers } from "@/lib/demo-data";
 import { listCustomers, saveCustomer, StoredCustomer } from "@/lib/browser-store";
-import { brazilianStates, commonCities } from "@/lib/select-options";
+import { brazilianStates, getCitiesByState } from "@/lib/select-options";
 
 const inputClass = "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none focus:border-blue-500 focus:bg-white";
 const labelClass = "grid gap-2 text-sm font-bold text-slate-700";
@@ -14,6 +14,8 @@ export function CustomersClient() {
   const [customers, setCustomers] = useState<StoredCustomer[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [selectedState, setSelectedState] = useState("SP");
+  const cities = getCitiesByState(selectedState);
 
   function refresh() {
     setCustomers(listCustomers());
@@ -38,6 +40,7 @@ export function CustomersClient() {
     });
 
     form.reset();
+    setSelectedState("SP");
     refresh();
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
@@ -97,8 +100,8 @@ export function CustomersClient() {
             <label className={labelClass}>CPF/CNPJ<input name="document" inputMode="numeric" placeholder="Ex: 123.456.789-00" className={inputClass} /></label>
             <label className={labelClass}>Telefone / WhatsApp<input required name="phone" inputMode="tel" autoComplete="tel" placeholder="Ex: (19) 98888-1100" className={inputClass} /></label>
             <label className={labelClass}>E-mail<input name="email" type="email" autoComplete="email" placeholder="Ex: cliente@email.com" className={inputClass} /></label>
-            <label className={labelClass}>Cidade<select name="city" className={inputClass}>{commonCities.map((city) => <option key={city}>{city}</option>)}</select></label>
-            <label className={labelClass}>UF<select name="state" defaultValue="SP" className={inputClass}>{brazilianStates.map((state) => <option key={state}>{state}</option>)}</select></label>
+            <label className={labelClass}>UF<select name="state" value={selectedState} onChange={(event) => setSelectedState(event.target.value)} className={inputClass}>{brazilianStates.map((state) => <option key={state}>{state}</option>)}</select></label>
+            <label className={labelClass}>Cidade<select name="city" className={inputClass}>{cities.map((city) => <option key={city}>{city}</option>)}</select></label>
           </div>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setIsFormOpen(false)} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
