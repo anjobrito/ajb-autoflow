@@ -85,6 +85,9 @@ export type StoredWorkOrder = {
   status: string;
   responsibleEmployeeId?: string;
   responsibleEmployeeName?: string;
+  businessType?: string;
+  businessProfileId?: string;
+  businessOperationMode?: string;
   notes: string;
   startedAt?: string;
   finishedAt?: string;
@@ -327,7 +330,14 @@ export function listWorkOrders() { return readList<StoredWorkOrder>(workOrdersKe
 export function saveWorkOrder(order: Omit<StoredWorkOrder, "id" | "code">) {
   const orders = listWorkOrders();
   const nextNumber = 2000 + orders.length + 1;
-  const record = { ...order, id: `os-${nextNumber}`, code: `OS-${nextNumber}` };
+  const company = getCompany();
+  const profileLabel = company.businessType || defaultCompany.businessType;
+  const record = {
+    ...order,
+    id: `os-${nextNumber}`,
+    code: `OS-${nextNumber}`,
+    businessType: order.businessType || profileLabel,
+  };
   writeList(workOrdersKey, [record, ...orders]);
   const quantity = Number(order.productQuantity || 0);
   if (order.product && quantity > 0) updateProductStock(order.product, quantity);
@@ -475,16 +485,7 @@ export function updateFinancialEntry(id: string, entry: Omit<StoredFinancialEntr
   let updatedRecord: StoredFinancialEntry | undefined;
   const updated = listFinancialEntries().map((current) => {
     if (current.id !== id) return current;
-
-    updatedRecord = {
-      ...current,
-      ...entry,
-      updatedAt: new Date().toISOString(),
-      settledAt: entry.status === "Pago" || entry.status === "Recebido"
-        ? entry.settledAt || current.settledAt || new Date().toISOString().slice(0, 10)
-        : entry.settledAt,
-    };
-
+    updatedRecord = { ...current, ...entry, updatedAt: new Date().toISOString(), settledAt: entry.status === "Pago" || entry.status === "Recebido" ? entry.settledAt || current.settledAt || new Date().toISOString().slice(0, 10) : entry.settledAt };
     return updatedRecord;
   });
 
@@ -501,11 +502,7 @@ export function deleteFinancialEntry(id: string) {
 export function updateFinancialEntryStatus(id: string, status: StoredFinancialEntry["status"]) {
   const updated = listFinancialEntries().map((entry) => {
     if (entry.id !== id) return entry;
-
-    const settledAt = status === "Pago" || status === "Recebido"
-      ? new Date().toISOString().slice(0, 10)
-      : entry.settledAt;
-
+    const settledAt = status === "Pago" || status === "Recebido" ? new Date().toISOString().slice(0, 10) : entry.settledAt;
     return { ...entry, status, settledAt, updatedAt: new Date().toISOString() };
   });
 
@@ -524,21 +521,14 @@ export function getFinancialEntriesByType(type: StoredFinancialEntry["type"]) {
 
 export function getFinancialEntriesSummary(type: StoredFinancialEntry["type"]): FinancialEntrySummary {
   const entries = getFinancialEntriesByType(type);
-
   return entries.reduce<FinancialEntrySummary>((summary, entry) => {
     const value = currencyToNumber(entry.amount);
     const displayStatus = getFinancialEntryDisplayStatus(entry);
-
-    if (displayStatus === "Cancelado") {
-      summary.cancelled += value;
-    } else {
-      summary.total += value;
-    }
-
+    if (displayStatus === "Cancelado") summary.cancelled += value;
+    else summary.total += value;
     if (displayStatus === "Pendente") summary.pending += value;
     if (displayStatus === "Vencido") summary.overdue += value;
     if (displayStatus === "Pago" || displayStatus === "Recebido") summary.settled += value;
-
     summary.count += 1;
     return summary;
   }, { total: 0, pending: 0, settled: 0, overdue: 0, cancelled: 0, count: 0 });
@@ -558,16 +548,15 @@ export function calculateMargin(costPrice: string, salePrice: string) {
 }
 export function calculateCommissionAmount(baseAmount: string, valueType: string, value: string) {
   const base = currencyToNumber(baseAmount);
-  const commissionValue = valueType === "Percentual" ? Number(value.replace("%", "").replace(",", ".").trim()) : currencyToNumber(value);
-  if (!Number.isFinite(commissionValue) || commissionValue <= 0) return 0;
-  if (valueType === "Percentual") return base * (commissionValue / 100);
-  return commissionValue;
+  const numericValue = currencyToNumber(value);
+  if (valueType === "Percentual") return base * (numericValue / 100);
+  return numericValue;
 }
-export function getEmployeeCommissionRule(employee: StoredEmployee, targetType: string) {
-  if (targetType === "Serviço" && employee.serviceCommissionType && employee.serviceCommissionType !== "Sem comissão") return { valueType: employee.serviceCommissionType, value: employee.serviceCommissionValue ?? "" };
-  if (targetType === "Produto/peça" && employee.partCommissionType && employee.partCommissionType !== "Sem comissão") return { valueType: employee.partCommissionType, value: employee.partCommissionValue ?? "" };
-  if (targetType === "Lavagem" && employee.washCommissionType && employee.washCommissionType !== "Sem comissão") return { valueType: employee.washCommissionType, value: employee.washCommissionValue ?? "" };
-  return undefined;
+
+export function getEmployeeCommissionRule(employee: StoredEmployee, targetType: StoredCommissionTargetType | string) {
+  if (targetType === "Produto/peça") return { valueType: employee.partCommissionType || "Sem comissão", value: employee.partCommissionValue || "0" };
+  if (targetType === "Lavagem") return { valueType: employee.washCommissionType || "Sem comissão", value: employee.washCommissionValue || "0" };
+  return { valueType: employee.serviceCommissionType || "Sem comissão", value: employee.serviceCommissionValue || "0" };
 }
 
 export function getDashboardStats() {
@@ -576,23 +565,11 @@ export function getDashboardStats() {
   return {
     customers: listCustomers().length,
     vehicles: listVehicles().length,
-    suppliers: listSuppliers().length,
-    employees: listEmployees().length,
     products: products.length,
     services: listServices().length,
-    reminders: listReminders().length,
     workOrders: workOrders.length,
     openWorkOrders: workOrders.filter((order) => order.status !== "Pronta para retirada").length,
     readyWorkOrders: workOrders.filter((order) => order.status === "Pronta para retirada").length,
     lowStock: products.filter((product) => Number(product.stock) <= Number(product.minStock)).length,
   };
-}
-
-export function getFinancialSummary() {
-  const workOrders = listWorkOrders();
-  const revenue = workOrders.reduce((sum, order) => sum + currencyToNumber(order.total), 0);
-  const profit = workOrders.reduce((sum, order) => sum + currencyToNumber(order.estimatedProfit || "0"), 0);
-  const ticket = workOrders.length > 0 ? revenue / workOrders.length : 0;
-  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-  return { revenue, profit, ticket, margin, workOrders: workOrders.length };
 }
