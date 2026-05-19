@@ -5,9 +5,67 @@ import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { UiModal } from "@/components/ui-modal";
 import { NewWorkOrderForm } from "@/components/new-work-order-form";
-import { demoWorkOrders } from "@/lib/demo-data";
 import { getCompany, listWorkOrders, StoredWorkOrder } from "@/lib/browser-store";
-import { getBusinessProfileByLabel } from "@/lib/business-types";
+import { BusinessProfile, getBusinessProfileByLabel } from "@/lib/business-types";
+
+type OperationRow = {
+  id: string;
+  code: string;
+  customer: string;
+  vehicle: string;
+  service: string;
+  responsibleEmployeeName: string;
+  status: string;
+  total: string;
+  origin: string;
+};
+
+const demoOperationsByProfile: Record<BusinessProfile["id"], OperationRow[]> = {
+  COMPLETO: [
+    { id: "demo-completo-1", code: "OP-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Revisão e higienização", responsibleEmployeeName: "Marcos", status: "Em atendimento", total: "R$ 318,00", origin: "Demo" },
+    { id: "demo-completo-2", code: "OP-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Preparação operacional", responsibleEmployeeName: "Carla", status: "Aguardando", total: "R$ 540,00", origin: "Demo" },
+    { id: "demo-completo-3", code: "OP-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Atendimento completo", responsibleEmployeeName: "Rafael", status: "Pronto", total: "R$ 270,00", origin: "Demo" },
+  ],
+  OFICINA: [
+    { id: "demo-oficina-1", code: "OS-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Troca de óleo", responsibleEmployeeName: "Marcos", status: "Em andamento", total: "R$ 238,00", origin: "Demo" },
+    { id: "demo-oficina-2", code: "OS-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Freio dianteiro", responsibleEmployeeName: "Rafael", status: "Aguardando peça", total: "R$ 640,00", origin: "Demo" },
+    { id: "demo-oficina-3", code: "OS-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Diagnóstico de suspensão", responsibleEmployeeName: "Marcos", status: "Controle de qualidade", total: "R$ 380,00", origin: "Demo" },
+  ],
+  LAVA_JATO: [
+    { id: "demo-lava-1", code: "AT-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Lavagem completa", responsibleEmployeeName: "Diego", status: "Em lavagem", total: "R$ 70,00", origin: "Demo" },
+    { id: "demo-lava-2", code: "AT-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Lavagem técnica", responsibleEmployeeName: "Bruno", status: "Acabamento", total: "R$ 120,00", origin: "Demo" },
+    { id: "demo-lava-3", code: "AT-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Aspiração e cera", responsibleEmployeeName: "Diego", status: "Pronto", total: "R$ 95,00", origin: "Demo" },
+  ],
+  ESTETICA: [
+    { id: "demo-estetica-1", code: "AE-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Polimento técnico", responsibleEmployeeName: "Marcos", status: "Em execução", total: "R$ 480,00", origin: "Demo" },
+    { id: "demo-estetica-2", code: "AE-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Vitrificação de pintura", responsibleEmployeeName: "Carla", status: "Cura/secagem", total: "R$ 1.200,00", origin: "Demo" },
+    { id: "demo-estetica-3", code: "AE-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Higienização interna", responsibleEmployeeName: "Marcos", status: "Revisão final", total: "R$ 280,00", origin: "Demo" },
+  ],
+  CENTRO_AUTOMOTIVO: [
+    { id: "demo-centro-1", code: "OA-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Diagnóstico e revisão", responsibleEmployeeName: "Marcos", status: "Diagnóstico", total: "R$ 420,00", origin: "Demo" },
+    { id: "demo-centro-2", code: "OA-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Serviço com peça em estoque", responsibleEmployeeName: "Rafael", status: "Em execução", total: "R$ 690,00", origin: "Demo" },
+    { id: "demo-centro-3", code: "OA-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Controle de qualidade", responsibleEmployeeName: "Carla", status: "Controle de qualidade", total: "R$ 350,00", origin: "Demo" },
+  ],
+  ESTACIONAMENTO: [
+    { id: "demo-estacionamento-1", code: "MOV-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Diária avulsa", responsibleEmployeeName: "Portaria", status: "Estacionado", total: "R$ 25,00", origin: "Demo" },
+    { id: "demo-estacionamento-2", code: "MOV-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Mensalista", responsibleEmployeeName: "Administração", status: "Mensalista", total: "R$ 220,00", origin: "Demo" },
+    { id: "demo-estacionamento-3", code: "MOV-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Pagamento pendente", responsibleEmployeeName: "Portaria", status: "Pagamento pendente", total: "R$ 40,00", origin: "Demo" },
+  ],
+  REVENDEDORA: [
+    { id: "demo-revenda-1", code: "PV-1024", customer: "João Pereira", vehicle: "Honda Civic", service: "Preparação para venda", responsibleEmployeeName: "Marcos", status: "Preparação", total: "R$ 850,00", origin: "Demo" },
+    { id: "demo-revenda-2", code: "PV-1025", customer: "Maria Souza", vehicle: "Fiat Argo", service: "Negociação em andamento", responsibleEmployeeName: "Carla", status: "Em negociação", total: "R$ 58.900,00", origin: "Demo" },
+    { id: "demo-revenda-3", code: "PV-1026", customer: "Carlos Lima", vehicle: "VW Gol", service: "Documentação e gravame", responsibleEmployeeName: "Rafael", status: "Documentação", total: "R$ 34.500,00", origin: "Demo" },
+  ],
+  AUTOPECAS: [
+    { id: "demo-autopecas-1", code: "PV-1024", customer: "João Pereira", vehicle: "Retirada balcão", service: "Pedido de filtros", responsibleEmployeeName: "Bruno", status: "Separação", total: "R$ 128,00", origin: "Demo" },
+    { id: "demo-autopecas-2", code: "PV-1025", customer: "Maria Souza", vehicle: "Entrega local", service: "Venda de bateria", responsibleEmployeeName: "Carla", status: "Aguardando pagamento", total: "R$ 420,00", origin: "Demo" },
+    { id: "demo-autopecas-3", code: "PV-1026", customer: "Carlos Lima", vehicle: "Pedido online", service: "Separação de peças", responsibleEmployeeName: "Bruno", status: "Faturado", total: "R$ 260,00", origin: "Demo" },
+  ],
+};
+
+function getDemoOperationsForProfile(profile: BusinessProfile) {
+  return demoOperationsByProfile[profile.id] ?? demoOperationsByProfile.COMPLETO;
+}
 
 export function WorkOrdersClient() {
   const [businessType, setBusinessType] = useState("Completo / Multioperação");
@@ -44,7 +102,7 @@ export function WorkOrdersClient() {
       total: order.total,
       origin: "Novo cadastro",
     })),
-    ...demoWorkOrders.map((order) => ({ ...order, responsibleEmployeeName: "Não definido", origin: "Demo" })),
+    ...getDemoOperationsForProfile(profile),
   ];
 
   const operationColumn = profile.operationLabel;
