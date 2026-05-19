@@ -1,11 +1,14 @@
 export type FinancingStatus = "EM_ANALISE" | "APROVADO" | "CONTRATO_EMITIDO" | "GRAVAME_PENDENTE" | "GRAVAME_REGISTRADO" | "PAGO" | "CANCELADO" | "RECUSADO";
 export type LienStatus = "NAO_INICIADO" | "PENDENTE" | "REGISTRADO" | "BAIXA_SOLICITADA" | "BAIXADO" | "COM_ERRO";
+export type ExternalCheckStatus = "NAO_CONSULTADO" | "CONSULTADO" | "ERRO";
 
 export type StoredVehicleFinancing = {
   id: string;
   customerId?: string;
   vehicleId?: string;
   sellerId?: string;
+  companyId?: string;
+  branchId?: string;
   sellerName: string;
   date: string;
   financedBank: string;
@@ -20,14 +23,29 @@ export type StoredVehicleFinancing = {
   contractNumber: string;
   requestedAmount: string;
   downPaymentAmount: string;
+  principalAmount?: string;
   financedAmount: string;
+  taxAmount?: string;
+  installmentAmount?: string;
   returnPercentage: string;
   returnAmount: string;
   prestamistaInsuranceAmount: string;
   branchName: string;
   financingStatus: FinancingStatus;
   lienStatus: LienStatus;
+  externalCheckStatus?: ExternalCheckStatus;
+  externalCheckDate?: string;
+  externalCheckProvider?: string;
+  externalCheckProtocol?: string;
+  externalCheckResult?: string;
+  hasCustomerDocument?: boolean;
+  hasVehicleDocument?: boolean;
+  hasSignedContract?: boolean;
+  hasDownPaymentReceipt?: boolean;
+  hasLienRegistration?: boolean;
+  hasPrestamistaInsurance?: boolean;
   returnReceived: boolean;
+  returnReceivedDate?: string;
   notes: string;
   createdAt: string;
   updatedAt?: string;
@@ -53,6 +71,12 @@ export const lienStatusOptions: { value: LienStatus; label: string }[] = [
   { value: "BAIXA_SOLICITADA", label: "Baixa solicitada" },
   { value: "BAIXADO", label: "Baixado" },
   { value: "COM_ERRO", label: "Com erro" },
+];
+
+export const externalCheckStatusOptions: { value: ExternalCheckStatus; label: string }[] = [
+  { value: "NAO_CONSULTADO", label: "Nao consultado" },
+  { value: "CONSULTADO", label: "Consultado" },
+  { value: "ERRO", label: "Erro na consulta" },
 ];
 
 const storageKey = "ajb-autoflow-vehicle-financings";
@@ -89,14 +113,29 @@ export function createEmptyVehicleFinancingDraft(): VehicleFinancingDraft {
     contractNumber: "",
     requestedAmount: "R$ 0,00",
     downPaymentAmount: "R$ 0,00",
+    principalAmount: "R$ 0,00",
     financedAmount: "R$ 0,00",
+    taxAmount: "R$ 0,00",
+    installmentAmount: "R$ 0,00",
     returnPercentage: "0%",
     returnAmount: "R$ 0,00",
     prestamistaInsuranceAmount: "R$ 0,00",
     branchName: "Matriz",
     financingStatus: "EM_ANALISE",
     lienStatus: "NAO_INICIADO",
+    externalCheckStatus: "NAO_CONSULTADO",
+    externalCheckDate: "",
+    externalCheckProvider: "",
+    externalCheckProtocol: "",
+    externalCheckResult: "",
+    hasCustomerDocument: false,
+    hasVehicleDocument: false,
+    hasSignedContract: false,
+    hasDownPaymentReceipt: false,
+    hasLienRegistration: false,
+    hasPrestamistaInsurance: false,
     returnReceived: false,
+    returnReceivedDate: "",
     notes: "",
   };
 }
@@ -130,4 +169,8 @@ export function getFinancingStatusLabel(status: string) {
 
 export function getLienStatusLabel(status: string) {
   return lienStatusOptions.find((item) => item.value === status)?.label ?? status;
+}
+
+export function getExternalCheckStatusLabel(status: string) {
+  return externalCheckStatusOptions.find((item) => item.value === status)?.label ?? status;
 }
