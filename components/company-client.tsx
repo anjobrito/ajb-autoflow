@@ -61,6 +61,7 @@ export function CompanyClient() {
     ["Razão social", company.legalName],
     ["CNPJ", company.cnpj],
     ["Perfil de negócio", selectedProfile.label],
+    ["Fluxo principal", selectedProfile.operationPluralLabel],
     ["Cidade/UF", `${company.city}/${company.state}`],
     ["Contato", `${company.phone} • ${company.email}`],
   ];
@@ -69,7 +70,7 @@ export function CompanyClient() {
     <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <h2 className="text-xl font-black text-slate-950">Configuração da empresa</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha o perfil de negócio para o sistema adaptar menus, módulos e linguagem operacional ao universo da empresa.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Escolha o perfil de negócio para o sistema adaptar menus, módulos, indicadores, fluxo operacional e linguagem ao universo real da empresa.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Input label="Nome fantasia" name="tradeName" value={company.tradeName} onChange={updateField} />
@@ -86,12 +87,48 @@ export function CompanyClient() {
           <p className="text-sm font-black uppercase tracking-wide text-blue-700">Universo operacional</p>
           <h3 className="mt-1 text-lg font-black text-slate-950">{selectedProfile.label}</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">{selectedProfile.description}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {selectedProfile.modules.map((module) => (
-              <span key={module} className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm">{module}</span>
-            ))}
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">Fluxo principal</p>
+              <p className="mt-2 text-lg font-black text-slate-950">{selectedProfile.operationPluralLabel}</p>
+              <p className="mt-1 text-sm text-slate-600">Nome operacional: {selectedProfile.operationLabel}</p>
+            </div>
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">Kanban sugerido</p>
+              <p className="mt-2 text-lg font-black text-slate-950">{selectedProfile.kanbanLabel}</p>
+              <p className="mt-1 text-sm text-slate-600">Base para adaptar colunas por perfil.</p>
+            </div>
           </div>
-          <p className="mt-4 text-xs font-semibold text-slate-500">Nesta fase o perfil oculta módulos não prioritários no menu. O bloqueio real de rotas será tratado futuramente com autenticação e permissões.</p>
+
+          <div className="mt-5">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-500">Módulos recomendados</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProfile.modules.map((module) => (
+                <span key={module} className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm">{module}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-500">Status do Kanban</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProfile.kanbanStatuses.map((status) => (
+                <span key={status} className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 shadow-sm">{status}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-500">Indicadores sugeridos para o Dashboard</p>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {selectedProfile.dashboardCards.map((card) => (
+                <span key={card} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">{card}</span>
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-5 text-xs font-semibold text-slate-500">Nesta fase o perfil adapta menus e documenta o contexto operacional. A próxima evolução deve aplicar esses nomes, status e indicadores no Dashboard e no Kanban reais.</p>
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3">
