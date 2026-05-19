@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Banknote, Car, FileText, Pencil, Search, ShieldCheck, Trash2 } from "lucide-react";
-import { currencyToNumber, numberToCurrency } from "@/lib/browser-store";
+import { currencyToNumber, listCustomers, listEmployees, listVehicles, numberToCurrency, StoredCustomer, StoredEmployee, StoredVehicle } from "@/lib/browser-store";
 import {
   createEmptyVehicleFinancingDraft,
   deleteVehicleFinancing,
@@ -52,6 +52,9 @@ function badgeClass(status: string) {
 
 export function VehicleFinancingClient() {
   const [records, setRecords] = useState<StoredVehicleFinancing[]>([]);
+  const [customers, setCustomers] = useState<StoredCustomer[]>([]);
+  const [vehicles, setVehicles] = useState<StoredVehicle[]>([]);
+  const [employees, setEmployees] = useState<StoredEmployee[]>([]);
   const [form, setForm] = useState<VehicleFinancingDraft>(() => createEmptyVehicleFinancingDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -60,6 +63,9 @@ export function VehicleFinancingClient() {
 
   function refresh() {
     setRecords(listVehicleFinancings());
+    setCustomers(listCustomers());
+    setVehicles(listVehicles());
+    setEmployees(listEmployees());
   }
 
   useEffect(() => {
@@ -73,6 +79,54 @@ export function VehicleFinancingClient() {
   function resetForm() {
     setForm(createEmptyVehicleFinancingDraft());
     setEditingId(null);
+  }
+
+  function handleCustomerSelect(customerId: string) {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) {
+      setForm((current) => ({ ...current, customerId: undefined }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      customerId: customer.id,
+      customerName: customer.name,
+      customerDocument: customer.document,
+      customerPhone: customer.phone,
+    }));
+  }
+
+  function handleVehicleSelect(vehicleId: string) {
+    const vehicle = vehicles.find((item) => item.id === vehicleId);
+    if (!vehicle) {
+      setForm((current) => ({ ...current, vehicleId: undefined }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      vehicleId: vehicle.id,
+      vehicleBrand: vehicle.brand,
+      vehicleModel: vehicle.model,
+      vehiclePlate: vehicle.plate,
+      vehicleYear: vehicle.year,
+      customerName: current.customerName || vehicle.customer,
+    }));
+  }
+
+  function handleSellerSelect(sellerId: string) {
+    const employee = employees.find((item) => item.id === sellerId);
+    if (!employee) {
+      setForm((current) => ({ ...current, sellerId: undefined }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      sellerId: employee.id,
+      sellerName: employee.name,
+    }));
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -142,11 +196,20 @@ export function VehicleFinancingClient() {
       <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastro manual estruturado</p>
+            <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastro integrado</p>
             <h2 className="mt-1 text-2xl font-black">{editingId ? "Editar financiamento" : "Novo financiamento/gravame"}</h2>
-            <p className="mt-2 text-sm text-slate-600">MVP em localStorage, preparado para integração futura com clientes, veículos, vendedores e financeiro.</p>
+            <p className="mt-2 text-sm text-slate-600">Selecione cadastros existentes para preencher dados automaticamente, mantendo os campos editáveis para ajustes manuais.</p>
           </div>
           <button type="button" onClick={resetForm} className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Limpar</button>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastros existentes</p>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <label className={labelClass}>Cliente existente<select value={form.customerId ?? ""} onChange={(event) => handleCustomerSelect(event.target.value)} className={inputClass}><option value="">Selecionar cliente</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} • {customer.document}</option>)}</select></label>
+            <label className={labelClass}>Veículo existente<select value={form.vehicleId ?? ""} onChange={(event) => handleVehicleSelect(event.target.value)} className={inputClass}><option value="">Selecionar veículo</option>{vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.plate} • {vehicle.brand} {vehicle.model}</option>)}</select></label>
+            <label className={labelClass}>Vendedor existente<select value={form.sellerId ?? ""} onChange={(event) => handleSellerSelect(event.target.value)} className={inputClass}><option value="">Selecionar vendedor</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name} • {employee.role}</option>)}</select></label>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
