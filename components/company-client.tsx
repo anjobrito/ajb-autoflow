@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getCompany, saveCompany, StoredCompany } from "@/lib/browser-store";
 import { businessTypes, getBusinessProfileByLabel } from "@/lib/business-types";
-import { brazilianStates, commonCities } from "@/lib/select-options";
+import { brazilianStates, getCitiesByState, normalizeCityForState } from "@/lib/select-options";
 
 function Input({ label, name, value, onChange }: { label: string; name: keyof StoredCompany; value: string; onChange: (name: keyof StoredCompany, value: string) => void }) {
   return (
@@ -31,16 +31,23 @@ export function CompanyClient() {
 
   useEffect(() => {
     const loaded = getCompany();
+    const state = brazilianStates.includes(loaded.state as typeof brazilianStates[number]) ? loaded.state : "SP";
     setCompany({
       ...loaded,
       businessType: businessTypes.includes(loaded.businessType as typeof businessTypes[number]) ? loaded.businessType : "Completo / Multioperação",
-      city: commonCities.includes(loaded.city as typeof commonCities[number]) ? loaded.city : "Outra",
-      state: brazilianStates.includes(loaded.state as typeof brazilianStates[number]) ? loaded.state : "SP",
+      state,
+      city: normalizeCityForState(loaded.city, state),
     });
   }, []);
 
   function updateField(name: keyof StoredCompany, value: string) {
-    setCompany((current) => current ? { ...current, [name]: value } : current);
+    setCompany((current) => {
+      if (!current) return current;
+      if (name === "state") {
+        return { ...current, state: value, city: normalizeCityForState(current.city, value) };
+      }
+      return { ...current, [name]: value };
+    });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -55,6 +62,8 @@ export function CompanyClient() {
   const selectedProfile = useMemo(() => getBusinessProfileByLabel(company?.businessType), [company?.businessType]);
 
   if (!company) return <div className="rounded-3xl bg-white p-6 shadow-sm">Carregando dados da empresa...</div>;
+
+  const cities = getCitiesByState(company.state);
 
   const cards = [
     ["Nome fantasia", company.tradeName],
@@ -77,8 +86,8 @@ export function CompanyClient() {
           <Input label="Razão social" name="legalName" value={company.legalName} onChange={updateField} />
           <Input label="CNPJ" name="cnpj" value={company.cnpj} onChange={updateField} />
           <SelectField label="Perfil de negócio" value={company.businessType} options={businessTypes} onChange={(value) => updateField("businessType", value)} />
-          <SelectField label="Cidade" value={company.city} options={commonCities} onChange={(value) => updateField("city", value)} />
           <SelectField label="Estado" value={company.state} options={brazilianStates} onChange={(value) => updateField("state", value)} />
+          <SelectField label="Cidade" value={company.city} options={cities} onChange={(value) => updateField("city", value)} />
           <Input label="Telefone" name="phone" value={company.phone} onChange={updateField} />
           <Input label="E-mail" name="email" value={company.email} onChange={updateField} />
         </div>
@@ -104,27 +113,21 @@ export function CompanyClient() {
           <div className="mt-5">
             <p className="text-xs font-black uppercase tracking-wide text-slate-500">Módulos recomendados</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {selectedProfile.modules.map((module) => (
-                <span key={module} className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm">{module}</span>
-              ))}
+              {selectedProfile.modules.map((module) => <span key={module} className="rounded-full bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm">{module}</span>)}
             </div>
           </div>
 
           <div className="mt-5">
             <p className="text-xs font-black uppercase tracking-wide text-slate-500">Status do Kanban</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {selectedProfile.kanbanStatuses.map((status) => (
-                <span key={status} className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 shadow-sm">{status}</span>
-              ))}
+              {selectedProfile.kanbanStatuses.map((status) => <span key={status} className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 shadow-sm">{status}</span>)}
             </div>
           </div>
 
           <div className="mt-5">
             <p className="text-xs font-black uppercase tracking-wide text-slate-500">Indicadores sugeridos para o Dashboard</p>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
-              {selectedProfile.dashboardCards.map((card) => (
-                <span key={card} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">{card}</span>
-              ))}
+              {selectedProfile.dashboardCards.map((card) => <span key={card} className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">{card}</span>)}
             </div>
           </div>
 
