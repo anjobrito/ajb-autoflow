@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BadgeDollarSign,
   Bell,
@@ -22,8 +22,11 @@ import {
   Wallet,
   Wrench,
 } from "lucide-react";
+import { getCompany } from "@/lib/browser-store";
+import { getBusinessProfileByLabel, isMenuKeyAllowedForBusinessProfile } from "@/lib/business-types";
 
 type MenuItem = {
+  key: string;
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -40,65 +43,97 @@ const menuGroups: MenuGroup[] = [
     title: "Geral",
     description: "visão e alertas",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: Gauge },
-      { label: "Lembretes", href: "/lembretes", icon: Bell },
+      { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: Gauge },
+      { key: "lembretes", label: "Lembretes", href: "/lembretes", icon: Bell },
     ],
   },
   {
     title: "Operação",
     description: "rotina da oficina",
     items: [
-      { label: "Ordens", href: "/ordens-servico", icon: ClipboardList },
-      { label: "Pátio", href: "/patio", icon: LayoutDashboard },
-      { label: "Veículos", href: "/veiculos", icon: Car },
-      { label: "Histórico", href: "/historico-veiculo", icon: History },
+      { key: "ordens", label: "Ordens", href: "/ordens-servico", icon: ClipboardList },
+      { key: "patio", label: "Pátio", href: "/patio", icon: LayoutDashboard },
+      { key: "veiculos", label: "Veículos", href: "/veiculos", icon: Car },
+      { key: "historico", label: "Histórico", href: "/historico-veiculo", icon: History },
     ],
   },
   {
     title: "Cadastros",
     description: "base operacional",
     items: [
-      { label: "Clientes", href: "/clientes", icon: Users },
-      { label: "Fornecedores", href: "/fornecedores", icon: Building2 },
-      { label: "Funcionários", href: "/funcionarios", icon: UserRoundCog },
-      { label: "Estoque", href: "/produtos", icon: Package },
-      { label: "Serviços", href: "/servicos", icon: Wrench },
+      { key: "clientes", label: "Clientes", href: "/clientes", icon: Users },
+      { key: "fornecedores", label: "Fornecedores", href: "/fornecedores", icon: Building2 },
+      { key: "funcionarios", label: "Funcionários", href: "/funcionarios", icon: UserRoundCog },
+      { key: "estoque", label: "Estoque", href: "/produtos", icon: Package },
+      { key: "servicos", label: "Serviços", href: "/servicos", icon: Wrench },
     ],
   },
   {
     title: "Financeiro",
     description: "contas e comissões",
     items: [
-      { label: "Financeiro", href: "/financeiro", icon: BadgeDollarSign },
-      { label: "Contas a pagar", href: "/contas-pagar", icon: Wallet },
-      { label: "Contas a receber", href: "/contas-receber", icon: Receipt },
-      { label: "Comissões", href: "/comissoes", icon: HandCoins },
+      { key: "financeiro", label: "Financeiro", href: "/financeiro", icon: BadgeDollarSign },
+      { key: "contas-pagar", label: "Contas a pagar", href: "/contas-pagar", icon: Wallet },
+      { key: "contas-receber", label: "Contas a receber", href: "/contas-receber", icon: Receipt },
+      { key: "comissoes", label: "Comissões", href: "/comissoes", icon: HandCoins },
     ],
   },
   {
     title: "Revenda",
     description: "garagem e veículos",
     items: [
-      { label: "Financ. e Gravames", href: "/financiamentos-gravames", icon: ClipboardList },
+      { key: "financiamentos-gravames", label: "Financ. e Gravames", href: "/financiamentos-gravames", icon: ClipboardList },
     ],
   },
   {
     title: "Sistema",
     description: "empresa e ajustes",
     items: [
-      { label: "Empresa", href: "/empresa", icon: Settings },
+      { key: "empresa", label: "Empresa", href: "/empresa", icon: Settings },
     ],
   },
 ];
 
-function findActiveGroup(pathname: string) {
-  return menuGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)))?.title ?? "Geral";
+function filterMenuGroups(businessType: string) {
+  return menuGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => isMenuKeyAllowedForBusinessProfile(item.key, businessType)),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+function findActiveGroup(pathname: string, groups: MenuGroup[]) {
+  return groups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)))?.title ?? groups[0]?.title ?? "Geral";
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const activeGroup = useMemo(() => findActiveGroup(pathname), [pathname]);
+  const [businessType, setBusinessType] = useState("Completo / Multioperação");
+
+  useEffect(() => {
+    function refreshBusinessType() {
+      setBusinessType(getCompany().businessType || "Completo / Multioperação");
+    }
+
+    refreshBusinessType();
+    window.addEventListener("storage", refreshBusinessType);
+    window.addEventListener("ajb-company-updated", refreshBusinessType);
+
+    return () => {
+      window.removeEventListener("storage", refreshBusinessType);
+      window.removeEventListener("ajb-company-updated", refreshBusinessType);
+    };
+  }, []);
+
+  const businessProfile = useMemo(() => getBusinessProfileByLabel(businessType), [businessType]);
+  const visibleMenuGroups = useMemo(() => filterMenuGroups(businessProfile.label), [businessProfile.label]);
+  const activeGroup = useMemo(() => findActiveGroup(pathname, visibleMenuGroups), [pathname, visibleMenuGroups]);
   const [openGroups, setOpenGroups] = useState<string[]>([activeGroup]);
+
+  useEffect(() => {
+    setOpenGroups((current) => current.includes(activeGroup) ? current : [activeGroup, ...current]);
+  }, [activeGroup]);
 
   function toggleGroup(title: string) {
     setOpenGroups((current) => current.includes(title) ? current.filter((item) => item !== title) : [...current, title]);
@@ -118,8 +153,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </Link>
 
-          <nav className="mt-8 grid max-h-[calc(100vh-150px)] gap-3 overflow-y-auto pr-1 text-sm font-semibold text-slate-200">
-            {menuGroups.map((group) => {
+          <div className="mt-6 rounded-2xl border border-blue-400/20 bg-blue-500/10 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Perfil ativo</p>
+            <p className="mt-1 text-sm font-black text-white">{businessProfile.label}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">Menu adaptado ao universo da empresa.</p>
+          </div>
+
+          <nav className="mt-5 grid max-h-[calc(100vh-230px)] gap-3 overflow-y-auto pr-1 text-sm font-semibold text-slate-200">
+            {visibleMenuGroups.map((group) => {
               const isOpen = openGroups.includes(group.title);
               const hasActiveItem = group.title === activeGroup;
 
