@@ -1,9 +1,12 @@
 export const businessTypes = [
+  "Completo / Multioperação",
   "Oficina mecânica",
   "Lava-jato",
   "Estética automotiva",
   "Autopeças",
   "Centro automotivo",
+  "Estacionamento",
+  "Revendedora / Garagem",
 ] as const;
 
 export const brazilianStates = [
