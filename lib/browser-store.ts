@@ -553,6 +553,15 @@ export function calculateCommissionAmount(baseAmount: string, valueType: string,
   return numericValue;
 }
 
+export function getFinancialSummary() {
+  const orders = listWorkOrders();
+  const revenue = orders.reduce((total, order) => total + currencyToNumber(order.total), 0);
+  const profit = orders.reduce((total, order) => total + currencyToNumber(order.estimatedProfit), 0);
+  const ticket = orders.length > 0 ? revenue / orders.length : 0;
+  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+  return { revenue, profit, ticket, margin, workOrders: orders.length };
+}
+
 export function getEmployeeCommissionRule(employee: StoredEmployee, targetType: StoredCommissionTargetType | string) {
   if (targetType === "Produto/peça") return { valueType: employee.partCommissionType || "Sem comissão", value: employee.partCommissionValue || "0" };
   if (targetType === "Lavagem") return { valueType: employee.washCommissionType || "Sem comissão", value: employee.washCommissionValue || "0" };
