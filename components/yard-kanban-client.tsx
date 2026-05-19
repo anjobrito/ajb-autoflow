@@ -4,8 +4,7 @@ import Link from "next/link";
 import { DragEvent, useEffect, useMemo, useState } from "react";
 import { Car, Clock, ClipboardList, Move } from "lucide-react";
 import { getCompany, listWorkOrders, StoredWorkOrder, updateWorkOrderStatus } from "@/lib/browser-store";
-import { getBusinessProfileByLabel } from "@/lib/business-types";
-import { demoWorkOrders } from "@/lib/demo-data";
+import { BusinessProfile, getBusinessProfileByLabel } from "@/lib/business-types";
 
 type KanbanCard = {
   id: string;
@@ -23,18 +22,60 @@ type KanbanColumn = {
   status: string;
 };
 
-const fallbackStatuses = ["Aberta", "Em andamento", "Aguardando peça", "Controle de qualidade", "Pronta para retirada", "Entregue"];
+const fallbackStatuses = ["Entrada", "Em atendimento", "Aguardando", "Pronto", "Entregue", "Finalizado"];
 
-const fallbackCards: KanbanCard[] = demoWorkOrders.map((order) => ({
-  id: order.id,
-  code: order.code,
-  customer: order.customer,
-  vehicle: `${order.plate} - ${order.vehicle}`,
-  service: order.service,
-  status: order.status,
-  total: order.total,
-  source: "demo",
-}));
+function buildDemoCards(profile: BusinessProfile): KanbanCard[] {
+  const statuses = profile.kanbanStatuses.length > 0 ? profile.kanbanStatuses : fallbackStatuses;
+  const statusAt = (index: number) => statuses[Math.min(index, statuses.length - 1)] ?? fallbackStatuses[0];
+
+  if (profile.id === "LAVA_JATO") {
+    return [
+      { id: "demo-lava-001", code: "LAV-1001", customer: "João Pereira", vehicle: "ABC1D23 - Honda Civic", service: "Lavagem completa", status: statusAt(1), total: "R$ 70,00", source: "demo" },
+      { id: "demo-lava-002", code: "LAV-1002", customer: "Maria Souza", vehicle: "BRA2E44 - Fiat Argo", service: "Lavagem simples", status: statusAt(0), total: "R$ 40,00", source: "demo" },
+      { id: "demo-lava-003", code: "LAV-1003", customer: "Carlos Lima", vehicle: "CAR9F10 - VW Gol", service: "Acabamento com cera", status: statusAt(2), total: "R$ 95,00", source: "demo" },
+      { id: "demo-lava-004", code: "LAV-1004", customer: "Ana Martins", vehicle: "AIB7S20 - Chevrolet Onix", service: "Higienização interna", status: statusAt(0), total: "R$ 180,00", source: "demo" },
+    ];
+  }
+
+  if (profile.id === "ESTETICA") {
+    return [
+      { id: "demo-est-001", code: "EST-2001", customer: "João Pereira", vehicle: "ABC1D23 - Honda Civic", service: "Polimento técnico", status: statusAt(2), total: "R$ 650,00", source: "demo" },
+      { id: "demo-est-002", code: "EST-2002", customer: "Maria Souza", vehicle: "BRA2E44 - Fiat Argo", service: "Vitrificação de pintura", status: statusAt(3), total: "R$ 1.200,00", source: "demo" },
+      { id: "demo-est-003", code: "EST-2003", customer: "Carlos Lima", vehicle: "CAR9F10 - VW Gol", service: "Higienização premium", status: statusAt(1), total: "R$ 320,00", source: "demo" },
+    ];
+  }
+
+  if (profile.id === "REVENDEDORA") {
+    return [
+      { id: "demo-rev-001", code: "VEN-3001", customer: "Interessado: Bruno Alves", vehicle: "ABC1D23 - Honda Civic", service: "Negociação com financiamento", status: statusAt(3), total: "R$ 82.900,00", source: "demo" },
+      { id: "demo-rev-002", code: "VEN-3002", customer: "Estoque da loja", vehicle: "BRA2E44 - Fiat Argo", service: "Preparação para anúncio", status: statusAt(1), total: "R$ 58.500,00", source: "demo" },
+      { id: "demo-rev-003", code: "VEN-3003", customer: "Interessada: Paula Gomes", vehicle: "CAR9F10 - VW Gol", service: "Documentação pós-venda", status: statusAt(5), total: "R$ 39.900,00", source: "demo" },
+    ];
+  }
+
+  if (profile.id === "ESTACIONAMENTO") {
+    return [
+      { id: "demo-estac-001", code: "PAT-4001", customer: "Mensalista: João Pereira", vehicle: "ABC1D23 - Honda Civic", service: "Permanência mensal", status: statusAt(2), total: "R$ 280,00", source: "demo" },
+      { id: "demo-estac-002", code: "PAT-4002", customer: "Avulso: Maria Souza", vehicle: "BRA2E44 - Fiat Argo", service: "Diária avulsa", status: statusAt(1), total: "R$ 35,00", source: "demo" },
+      { id: "demo-estac-003", code: "PAT-4003", customer: "Carlos Lima", vehicle: "CAR9F10 - VW Gol", service: "Pagamento pendente", status: statusAt(3), total: "R$ 120,00", source: "demo" },
+    ];
+  }
+
+  if (profile.id === "AUTOPECAS") {
+    return [
+      { id: "demo-pec-001", code: "PED-5001", customer: "Cliente balcão", vehicle: "Sem veículo vinculado", service: "Separação de filtros", status: statusAt(1), total: "R$ 156,00", source: "demo" },
+      { id: "demo-pec-002", code: "PED-5002", customer: "Oficina parceira", vehicle: "Frota comercial", service: "Pedido de lubrificantes", status: statusAt(2), total: "R$ 890,00", source: "demo" },
+      { id: "demo-pec-003", code: "PED-5003", customer: "Carlos Lima", vehicle: "CAR9F10 - VW Gol", service: "Produto faturado", status: statusAt(3), total: "R$ 240,00", source: "demo" },
+    ];
+  }
+
+  return [
+    { id: "demo-ofi-001", code: "OS-1024", customer: "João Pereira", vehicle: "ABC1D23 - Honda Civic", service: "Revisão preventiva", status: statusAt(1), total: "R$ 380,00", source: "demo" },
+    { id: "demo-ofi-002", code: "OS-1025", customer: "Maria Souza", vehicle: "BRA2E44 - Fiat Argo", service: "Diagnóstico de suspensão", status: statusAt(2), total: "R$ 640,00", source: "demo" },
+    { id: "demo-ofi-003", code: "OS-1026", customer: "Carlos Lima", vehicle: "CAR9F10 - VW Gol", service: "Controle de qualidade", status: statusAt(3), total: "R$ 180,00", source: "demo" },
+    { id: "demo-ofi-004", code: "OS-1027", customer: "Ana Martins", vehicle: "AIB7S20 - Chevrolet Onix", service: "Entrada para orçamento", status: statusAt(0), total: "R$ 0,00", source: "demo" },
+  ];
+}
 
 function normalizeOrder(order: StoredWorkOrder): KanbanCard {
   return {
@@ -61,9 +102,10 @@ export function YardKanbanClient() {
 
   function refresh() {
     const company = getCompany();
-    setBusinessType(company.businessType || "Completo / Multioperação");
+    const profile = getBusinessProfileByLabel(company.businessType || "Completo / Multioperação");
+    setBusinessType(profile.label);
     const stored = listWorkOrders().map(normalizeOrder);
-    setOrders(stored.length > 0 ? stored : fallbackCards);
+    setOrders(stored.length > 0 ? stored : buildDemoCards(profile));
   }
 
   useEffect(() => {
@@ -151,7 +193,7 @@ export function YardKanbanClient() {
         <p className="text-sm font-black uppercase tracking-wide text-blue-700">Kanban drag and drop</p>
         <h2 className="mt-1 text-xl font-black text-slate-950">{profile.kanbanLabel}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Arraste os cards entre as colunas para atualizar o status do fluxo. Registros reais são salvos no localStorage; cards demo mudam apenas visualmente nesta sessão.
+          Arraste os cards entre as colunas para atualizar o status do fluxo. Registros reais são salvos no localStorage; cards demo seguem o perfil selecionado e mudam apenas visualmente nesta sessão.
         </p>
       </section>
 
