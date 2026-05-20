@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { UiModal } from "@/components/ui-modal";
 import { NewWorkOrderForm } from "@/components/new-work-order-form";
 import { getCompany, listWorkOrders, StoredWorkOrder } from "@/lib/browser-store";
+import { filterWorkOrdersByBusinessProfile } from "@/lib/business-profile-work-orders";
 import { BusinessProfile, getBusinessProfileByLabel } from "@/lib/business-types";
 
 type OperationRow = {
@@ -89,9 +90,10 @@ export function WorkOrdersClient() {
   }, []);
 
   const profile = useMemo(() => getBusinessProfileByLabel(businessType), [businessType]);
+  const profileOrders = useMemo(() => filterWorkOrdersByBusinessProfile(orders, profile), [orders, profile]);
 
   const rows = [
-    ...orders.map((order) => ({
+    ...profileOrders.map((order) => ({
       id: order.id,
       code: order.code,
       customer: order.customer,
