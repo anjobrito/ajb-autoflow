@@ -120,7 +120,8 @@ export function ProductsClient() {
       costPrice: product.name.includes("Óleo") ? "R$ 30,00" : product.name.includes("Filtro") ? "R$ 18,00" : product.name.includes("Pastilha") ? "R$ 132,00" : "R$ 20,00",
     }));
 
-    return filterProductsByBusinessProfile([...products, ...demoItems], profile);
+    const filteredDemoItems = filterProductsByBusinessProfile(demoItems, profile);
+    return [...products, ...filteredDemoItems];
   }, [products, profile]);
 
   const modalTitle = editingProduct ? `Editar ${labels.productLabel.toLowerCase()}` : `Cadastrar ${labels.productLabel.toLowerCase()}`;
@@ -132,7 +133,7 @@ export function ProductsClient() {
         <div>
           <p className="text-sm font-black uppercase tracking-wide text-blue-700">Cadastro</p>
           <h2 className="mt-1 text-2xl font-black text-slate-950">{getCatalogTitle(labels.productLabel)}</h2>
-          <p className="mt-2 text-sm text-slate-600">Lista adaptada ao perfil {profile.label}. Evita exibir itens de outro universo operacional.</p>
+          <p className="mt-2 text-sm text-slate-600">Lista adaptada ao perfil {profile.label}. Itens cadastrados pelo usuário permanecem visíveis; modelos seguem o universo operacional.</p>
         </div>
         <button type="button" onClick={openCreateModal} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">
           <Plus className="h-4 w-4" />
@@ -146,7 +147,11 @@ export function ProductsClient() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>{[labels.productLabel, "Ações", "Fornecedor", "Saldo", "Custo", "Venda", "Lucro", "Margem"].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}</tr>
+              <tr>
+                <th className="sticky left-0 z-20 bg-slate-50 px-5 py-4 font-black shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">{labels.productLabel}</th>
+                <th className="sticky left-[220px] z-20 bg-slate-50 px-5 py-4 font-black shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">Ações</th>
+                {['Fornecedor', 'Saldo', 'Custo', 'Venda', 'Lucro', 'Margem'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
+              </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {domainProducts.map((product, rowIndex) => {
@@ -154,8 +159,8 @@ export function ProductsClient() {
                 const isEditable = editableProductIds.has(product.id);
                 return (
                   <tr key={`${product.id}-${rowIndex}`} className="hover:bg-slate-50">
-                    <td className="px-5 py-4 font-black text-slate-950">{product.name}</td>
-                    <td className="px-5 py-4">
+                    <td className="sticky left-0 z-10 min-w-[220px] bg-white px-5 py-4 font-black text-slate-950 shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">{product.name}</td>
+                    <td className="sticky left-[220px] z-10 min-w-[120px] bg-white px-5 py-4 shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">
                       {isEditable ? (
                         <button type="button" onClick={() => openEditModal(product)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-blue-700 hover:bg-blue-50"><Pencil className="h-3.5 w-3.5" />Editar</button>
                       ) : (
