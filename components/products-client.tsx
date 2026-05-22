@@ -147,11 +147,7 @@ export function ProductsClient() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="sticky left-0 z-20 bg-slate-50 px-5 py-4 font-black shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">{labels.productLabel}</th>
-                <th className="sticky left-[220px] z-20 bg-slate-50 px-5 py-4 font-black shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">Ações</th>
-                {['Fornecedor', 'Saldo', 'Custo', 'Venda', 'Lucro', 'Margem'].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}
-              </tr>
+              <tr>{[labels.productLabel, "Fornecedor", "Saldo", "Custo", "Venda", "Lucro", "Margem", "Ações"].map((column) => <th key={column} className="px-5 py-4 font-black">{column}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {domainProducts.map((product, rowIndex) => {
@@ -159,20 +155,20 @@ export function ProductsClient() {
                 const isEditable = editableProductIds.has(product.id);
                 return (
                   <tr key={`${product.id}-${rowIndex}`} className="hover:bg-slate-50">
-                    <td className="sticky left-0 z-10 min-w-[220px] bg-white px-5 py-4 font-black text-slate-950 shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">{product.name}</td>
-                    <td className="sticky left-[220px] z-10 min-w-[120px] bg-white px-5 py-4 shadow-[8px_0_12px_-12px_rgba(15,23,42,0.7)]">
-                      {isEditable ? (
-                        <button type="button" onClick={() => openEditModal(product)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-blue-700 hover:bg-blue-50"><Pencil className="h-3.5 w-3.5" />Editar</button>
-                      ) : (
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">Modelo</span>
-                      )}
-                    </td>
+                    <td className="px-5 py-4 font-black text-slate-950">{product.name}</td>
                     <td className="px-5 py-4 text-slate-700">{product.supplier || "Sem fornecedor"}</td>
                     <td className="px-5 py-4 text-slate-700">{product.stock}</td>
                     <td className="px-5 py-4 text-slate-700">{product.costPrice}</td>
                     <td className="px-5 py-4 text-slate-700">{product.price}</td>
                     <td className="px-5 py-4 text-slate-700">{formatCurrency(result.profit)}</td>
                     <td className="px-5 py-4"><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">{formatMargin(result.margin)}</span></td>
+                    <td className="px-5 py-4">
+                      {isEditable ? (
+                        <button type="button" onClick={() => openEditModal(product)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-blue-700 hover:bg-blue-50"><Pencil className="h-3.5 w-3.5" />Editar</button>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">Modelo</span>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
